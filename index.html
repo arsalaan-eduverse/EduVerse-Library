@@ -1,110 +1,400 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Online Library (Public Domain)</title>
-  <style>
-    body{font-family:Inter,system-ui,Arial;margin:0;padding:24px;background:#f7f7fb;color:#111}
-    header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
-    input,select{padding:8px;border-radius:6px;border:1px solid #ddd}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-    .card{background:#fff;padding:14px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
-    .meta{font-size:13px;color:#666;margin-top:6px}
-    .actions{margin-top:10px;display:flex;gap:8px}
-    a.button{padding:8px 10px;border-radius:8px;background:#0b74de;color:#fff;text-decoration:none;font-weight:600}
-    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#eef5ff;color:#0b74de;display:inline-block}
-    footer{margin-top:20px;color:#666;font-size:13px}
-    small.note{color:#555}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>EduVerse Library — Warm Library Theme</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Warm Library Tone */
+  :root{
+    --bg:#fbf7ef; --card:#fffaf3; --muted:#6b4f3b; --text:#2b1f16;
+    --accent:#a0632a; --accent-2:#7a4b2a; --shadow: rgba(35,20,10,0.06);
+  }
+  [data-theme="dark"]{
+    --bg:#0f1112; --card:#111418; --muted:#9da3a6; --text:#e6e9eb;
+    --accent:#c78a4a; --accent-2:#a96b30; --shadow: rgba(0,0,0,0.6);
+  }
+  *{box-sizing:border-box}
+  body{font-family:"Libre Franklin",system-ui,Arial;margin:0;background:var(--bg);color:var(--text);min-height:100vh}
+  .wrap{max-width:1100px;margin:18px auto;padding:18px}
+  header{display:flex;align-items:center;gap:12px}
+  .brand{font-weight:700;font-size:22px;color:var(--accent-2)}
+  nav{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .btn{padding:8px 12px;border-radius:10px;background:var(--accent);color:white;border:none;cursor:pointer;font-weight:600}
+  .btn.ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);color:var(--text)}
+  .small{font-size:13px;color:var(--muted)}
+  input,textarea{padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:transparent;color:var(--text)}
+  .search{min-width:240px}
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:18px}
+  .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 8px 24px var(--shadow);border:1px solid rgba(0,0,0,0.02)}
+  .book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .book-card{padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.03)}
+  .book-title{font-weight:700;color:var(--accent-2)}
+  footer.app-foot{margin-top:20px;color:var(--muted);text-align:center;font-size:13px}
+
+  /* Chat */
+  .chat-panel{position:fixed;right:0;top:0;height:100%;width:380px;transform:translateX(106%);transition:transform .28s ease;z-index:1500}
+  .chat-panel.open{transform:translateX(0)}
+  .chat-panel .panel{height:100%;display:flex;flex-direction:column;background:var(--card);box-shadow:-8px 0 24px rgba(0,0,0,0.2)}
+  .chat-body{flex:1;overflow:auto;padding:12px}
+  .chat-input{display:flex;padding:12px;border-top:1px solid rgba(0,0,0,0.04);gap:8px}
+  .msg{margin-bottom:8px;padding:8px;border-radius:12px;display:inline-block;max-width:82%}
+  .msg.me{background:linear-gradient(90deg,#fff4e6,#fffaf3);margin-left:auto;border:1px solid rgba(0,0,0,0.03)}
+  .msg.them{background:rgba(255,255,255,0.6);border:1px solid rgba(0,0,0,0.03)}
+
+  .tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .tab{padding:8px 12px;border-radius:999px;background:transparent;border:1px solid rgba(0,0,0,0.03);cursor:pointer;color:var(--muted)}
+  .tab.active{background:var(--accent);color:white}
+  .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#fff4e6;color:var(--accent-2);font-weight:700}
+
+  .avatar{width:72px;height:72px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-weight:700;color:white;background:var(--accent-2)}
+  .progress{height:10px;border-radius:999px;background:rgba(0,0,0,0.04);overflow:hidden}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent-2),var(--accent));width:0%}
+
+  @media (max-width:980px){ .grid{grid-template-columns:1fr} .chat-panel{width:100%} }
+</style>
 </head>
 <body>
+<div id="app" class="wrap" data-theme="light">
   <header>
-    <h1 style="margin:0;font-size:20px">Online Library — Public Domain</h1>
-    <div style="flex:1"></div>
-    <input id="q" placeholder="Search title or author" />
-    <select id="sourceFilter">
-      <option value="">All sources</option>
-    </select>
+    <div><div class="brand">EduVerse <span class="small">Library</span></div><div class="small">Learn • Share • Grow</div></div>
+    <nav>
+      <input id="globalSearch" class="search" placeholder="Search titles, authors or topics">
+      <button id="themeToggle" class="btn ghost">Dark</button>
+      <div id="rankArea" class="small" style="display:flex;align-items:center;gap:10px"></div>
+      <button id="openChatBtn" class="btn ghost">Chat</button>
+      <button id="navProfileBtn" class="btn">Profile</button>
+    </nav>
   </header>
 
   <main>
-    <div id="results" class="grid"></div>
-    <p id="empty" style="display:none">No results found.</p>
+    <div class="grid">
+      <section>
+        <div id="page" class="card">
+          <!-- SPA content injected here -->
+        </div>
+        <div class="small" style="margin-top:10px">All free works must include license & source; paid items link to purchase pages to avoid copyright issues.</div>
+      </section>
+
+      <aside>
+        <div class="card">
+          <h4 style="margin:0">Navigation</h4>
+          <div style="height:10px"></div>
+          <div class="tabs" id="sideTabs">
+            <button class="tab" data-page="login">Login</button>
+            <button class="tab" data-page="profile">Profile</button>
+            <button class="tab active" data-page="home">Home</button>
+            <button class="tab" data-page="books">Books</button>
+            <button class="tab" data-page="novels">Novels & Poems</button>
+            <button class="tab" data-page="languages">Languages</button>
+            <button class="tab" data-page="qa">Self-Test & Questions</button>
+            <button class="tab" data-page="community">Community</button>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="card">
+          <h4 style="margin:0">Your Friends</h4>
+          <div id="friendsList" style="margin-top:10px"></div>
+        </div>
+      </aside>
+    </div>
   </main>
 
-  <footer>
-    <div><small class="note">Only add works that are public-domain or have a license you are allowed to redistribute. Each item must include a license field and a direct source URL.</small></div>
-  </footer>
+  <footer class="app-foot">EduVerse Library — Warm theme • All material linked from public-domain or authorized sources</footer>
+</div>
+
+<div id="chatPanel" class="chat-panel">
+  <div class="panel">
+    <div style="padding:14px;border-bottom:1px solid rgba(0,0,0,0.04);display:flex;align-items:center">
+      <strong id="chatWith">Chat</strong><div style="flex:1"></div><button id="closeChat" class="btn ghost">Close</button>
+    </div>
+    <div id="chatBody" class="chat-body"></div>
+    <div class="chat-input">
+      <input id="chatText" placeholder="Message..." style="flex:1;padding:10px;border-radius:8px" />
+      <button id="sendChat" class="btn">Send</button>
+    </div>
+  </div>
+</div>
 
 <script>
-async function loadBooks(){
-  const res = await fetch('books.json');
-  const books = await res.json();
-  window.BOOKS = books;
-  populateSourceFilter(books);
-  render(books);
+/* Client-only SPA (localStorage)
+   - Login -> Profile -> Home flow (login shown first if no session)
+   - Unique usernames enforced
+   - Chat, Q&A, Friends, XP/Rank with -25 XP/day decay
+   - Warm theme with gold accents and pop-up on decay
+*/
+
+const LS_USERS = 'ev_users_v1';
+const LS_SESS = 'ev_session_v1';
+const LS_BOOKS = 'ev_books_v1';
+const LS_QA = 'ev_qa_v1';
+const LS_CHATS = 'ev_chats_v1';
+
+const app = document.getElementById('app');
+const page = document.getElementById('page');
+const globalSearch = document.getElementById('globalSearch');
+const themeToggle = document.getElementById('themeToggle');
+const openChatBtn = document.getElementById('openChatBtn');
+const chatPanel = document.getElementById('chatPanel');
+const chatBody = document.getElementById('chatBody');
+const chatText = document.getElementById('chatText');
+const sendChat = document.getElementById('sendChat');
+const closeChat = document.getElementById('closeChat');
+const rankArea = document.getElementById('rankArea');
+const sideTabs = document.querySelectorAll('#sideTabs .tab');
+const friendsList = document.getElementById('friendsList');
+
+let BOOKS=[]; let currentUser=null; let activeChat=null;
+
+function read(key, fallback){ try{ const v = localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){return fallback;}}
+function write(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+function loadUsers(){ return read(LS_USERS, []); }
+function saveUsers(u){ write(LS_USERS, u); }
+
+function createId(pref='u'){ return pref + Date.now().toString(36) + Math.floor(Math.random()*999).toString(36); }
+function findUserByUsername(name){ if(!name) return null; const low = name.trim().toLowerCase(); return loadUsers().find(u=>u.usernameLower===low); }
+function findUserById(id){ return loadUsers().find(u=>u.id===id); }
+
+function setSession(id){ write(LS_SESS, {userId:id}); }
+function clearSession(){ localStorage.removeItem(LS_SESS); currentUser=null; renderRank(); }
+function getSession(){ return read(LS_SESS, null); }
+
+const RANKS = [{min:0,name:'New Learner',emoji:'📘'},{min:51,name:'Thinker',emoji:'💡'},{min:151,name:'Helper',emoji:'🤝'},{min:301,name:'Master',emoji:'🏆'},{min:601,name:'Genius',emoji:'🧠'}];
+function xpToRank(xp=0){ for(let i=RANKS.length-1;i>=0;i--) if(xp>=RANKS[i].min) return RANKS[i]; return RANKS[0]; }
+
+function awardXP(userId,amt){
+  const users = loadUsers(); const idx = users.findIndex(u=>u.id===userId); if(idx===-1) return;
+  users[idx].xp = Math.max(0, (users[idx].xp||0) + amt); users[idx].lastActive = Date.now(); saveUsers(users);
+  if(currentUser && currentUser.id===userId){ currentUser = users[idx]; renderRank(); notify('+'+amt+' XP'); }
 }
 
-function populateSourceFilter(books){
-  const sel = document.getElementById('sourceFilter');
-  const sources = Array.from(new Set(books.map(b=>b.source_name).filter(Boolean))).sort();
-  for(const s of sources){
-    const opt = document.createElement('option');
-    opt.value = s; opt.textContent = s;
-    sel.appendChild(opt);
+function applyDecayAndVisit(user){
+  const last = user.lastActive || Date.now(); const now = Date.now();
+  const days = Math.floor((now - last) / (24*60*60*1000));
+  let xp = user.xp || 0;
+  if(days>0){
+    const decay = 25 * days;
+    xp = Math.max(0, xp - decay);
+    // show pop-up for decay
+    notify('You lost ' + decay + ' XP for inactivity');
   }
+  xp += 5; // daily visit
+  user.xp = xp; user.lastActive = now;
+  const users = loadUsers(); const idx = users.findIndex(u=>u.id===user.id);
+  if(idx>-1) users[idx] = user; else users.push(user);
+  saveUsers(users); currentUser = user;
 }
 
-function render(list){
-  const container = document.getElementById('results');
-  container.innerHTML = '';
-  if(list.length === 0){
-    document.getElementById('empty').style.display='block';
-    return;
+function renderRank(){
+  rankArea.innerHTML='';
+  if(currentUser){
+    const r = xpToRank(currentUser.xp||0);
+    rankArea.innerHTML = `<strong style="color:var(--accent-2)">${escapeHtml(currentUser.username)}</strong> • <span class="badge">${r.emoji} ${r.name}</span> • XP ${currentUser.xp||0}`;
+  } else {
+    const b = document.createElement('button'); b.className='btn ghost'; b.textContent='Login'; b.onclick=()=>showPage('login'); rankArea.appendChild(b);
   }
-  document.getElementById('empty').style.display='none';
-  for(const b of list){
-    const c = document.createElement('div'); c.className='card';
-    c.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:start">
-        <div>
-          <strong>${escapeHtml(b.title)}</strong>
-          <div class="meta">${escapeHtml(b.author||'Unknown')}</div>
-        </div>
-        <div style="text-align:right">
-          <div class="badge">${escapeHtml(b.license||'Unknown')}</div>
-          <div style="font-size:12px;color:#999">${escapeHtml(b.source_name||'')}</div>
+  loadFriendsList();
+}
+
+function loadFriendsList(){
+  friendsList.innerHTML='';
+  if(!currentUser){ friendsList.innerHTML='<div class="small">Login to see friends</div>'; return; }
+  const friends = currentUser.friends||[]; if(friends.length===0){ friendsList.innerHTML='<div class="small">No friends yet</div>'; return; }
+  friends.forEach(id=>{ const u=findUserById(id); if(!u) return; const d=document.createElement('div'); d.className='small'; d.innerHTML = `${escapeHtml(u.username)} <button class="btn ghost" style="margin-left:8px" onclick="startChat('${u.id}')">Chat</button>`; friendsList.appendChild(d); });
+}
+
+sideTabs.forEach(t=>t.addEventListener('click', ()=> showPage(t.dataset.page)));
+
+function showPage(pageName){
+  sideTabs.forEach(t=>t.classList.remove('active'));
+  const sel = document.querySelector(`#sideTabs .tab[data-page="${pageName}"]`);
+  if(sel) sel.classList.add('active');
+  if(pageName==='login'){ renderLogin(); return; }
+  if(pageName==='profile'){ renderProfile(); return; }
+  if(pageName==='home'){ renderHome(); return; }
+  if(pageName==='books'){ renderBooks(); return; }
+  if(pageName==='novels'){ renderNovels(); return; }
+  if(pageName==='languages'){ renderLanguages(); return; }
+  if(pageName==='qa'){ renderQA(); return; }
+  if(pageName==='community'){ renderCommunity(); return; }
+  renderHome();
+}
+
+/* Login / Register */
+function renderLogin(){
+  page.innerHTML = `<h2>Welcome to EduVerse Library</h2>
+  <div style="height:8px"></div>
+  <div class="card">
+    <h3>Login</h3>
+    <input id="loginUser" placeholder="Username" style="width:100%;margin-top:8px"/><div style="height:8px"></div>
+    <div style="display:flex;gap:8px">
+      <button id="doLogin" class="btn">Login</button>
+      <button id="toRegister" class="btn ghost">Register</button>
+    </div>
+    <div style="height:10px"></div>
+    <div class="small">If you're new click Register. Usernames must be unique.</div>
+  </div>`;
+  document.getElementById('doLogin').onclick = ()=>{
+    const uname = document.getElementById('loginUser').value.trim();
+    if(!uname) return alert('Enter username');
+    const user = findUserByUsername(uname);
+    if(!user) return alert('User not found. Please register.');
+    setSession(user.id); applyDecayAndVisit(user); renderRank(); showPage('profile');
+  };
+  document.getElementById('toRegister').onclick = ()=> renderRegister();
+}
+
+function renderRegister(){
+  page.innerHTML = `<h2>Create account</h2>
+  <div style="height:8px"></div>
+  <div class="card">
+    <h3>Register</h3>
+    <input id="regUser" placeholder="Choose username (unique)" style="width:100%;margin-top:8px"/><div style="height:8px"></div>
+    <input id="regEmail" placeholder="Email (optional)" style="width:100%;margin-top:4px"/><div style="height:12px"></div>
+    <textarea id="regBio" placeholder="Short bio (optional)" style="width:100%;min-height:80px"></textarea>
+    <div style="height:12px"></div>
+    <div style="display:flex;gap:8px">
+      <button id="createAccount" class="btn">Create Account</button>
+      <button id="backLogin" class="btn ghost">Back</button>
+    </div>
+  </div>`;
+  document.getElementById('backLogin').onclick = ()=> showPage('login');
+  document.getElementById('createAccount').onclick = ()=>{
+    const uname = document.getElementById('regUser').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const bio = document.getElementById('regBio').value.trim();
+    if(!uname) return alert('Choose a username');
+    if(findUserByUsername(uname)) return alert('Username taken — try another');
+    const users = loadUsers(); const id = createId('u');
+    const color = pickColor(uname);
+    const newUser = {id, username:uname, usernameLower:uname.toLowerCase(), email, bio, xp:10, lastActive:Date.now(), friends:[], avatarColor:color};
+    users.push(newUser); saveUsers(users);
+    setSession(id); currentUser=newUser; notify('Welcome, ' + uname + '! +10 XP'); renderRank(); showPage('profile');
+  };
+}
+
+/* Profile */
+function renderProfile(){
+  if(!getSession()) { showPage('login'); return; }
+  if(!currentUser){ const s = getSession(); if(s && s.userId) currentUser = findUserById(s.userId); }
+  if(!currentUser) { showPage('login'); return; }
+  page.innerHTML = `<h2>Your Profile</h2><div style="height:8px"></div>
+  <div style="display:flex;gap:12px;align-items:flex-start">
+    <div style="width:240px">
+      <div class="card">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="avatar">${escapeHtml(initials(currentUser.username))}</div>
+          <div>
+            <div style="font-weight:700">${escapeHtml(currentUser.username)}</div>
+            <div class="small">${escapeHtml(currentUser.email||'')}</div>
+            <div style="height:8px"></div>
+            <div>${renderRankSmall(currentUser.xp)}</div>
+          </div>
         </div>
       </div>
-      <div class="meta">${escapeHtml(b.description||'')}</div>
-      <div class="actions">
-        <a class="button" href="${encodeURI(b.source_url)}" target="_blank" rel="noopener">Open source</a>
-        ${b.preview_url ? `<a class="button" href="${encodeURI(b.preview_url)}" target="_blank" style="background:#666">Preview</a>` : ''}
+    </div>
+    <div style="flex:1">
+      <div class="card">
+        <h4>Edit Profile</h4>
+        <input id="editUser" placeholder="Username" style="width:100%;margin-top:8px" value="${escapeHtml(currentUser.username)}"/><div style="height:8px"></div>
+        <textarea id="editBio" placeholder="Bio" style="width:100%;min-height:80px">${escapeHtml(currentUser.bio||'')}</textarea>
+        <div style="height:12px"></div>
+        <div style="display:flex;gap:8px"><button id="saveProfile" class="btn">Save</button><button id="logoutBtn" class="btn ghost">Logout</button></div>
       </div>
-    `;
-    container.appendChild(c);
-  }
+    </div>
+  </div>`;
+  document.getElementById('saveProfile').onclick = ()=>{
+    const newU = document.getElementById('editUser').value.trim();
+    const newBio = document.getElementById('editBio').value.trim();
+    if(!newU) return alert('Username required');
+    if(newU.toLowerCase() !== currentUser.usernameLower && findUserByUsername(newU)) return alert('Username taken');
+    const users = loadUsers(); const idx = users.findIndex(u=>u.id===currentUser.id);
+    users[idx].username = newU; users[idx].usernameLower = newU.toLowerCase(); users[idx].bio = newBio;
+    users[idx].avatarColor = users[idx].avatarColor || pickColor(newU); saveUsers(users);
+    currentUser = users[idx]; setSession(currentUser.id); notify('Profile saved'); renderRank(); renderProfile();
+  };
+  document.getElementById('logoutBtn').onclick = ()=>{ clearSession(); showPage('login'); };
 }
 
-function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-
-function applyFilters(){
-  const q = document.getElementById('q').value.trim().toLowerCase();
-  const src = document.getElementById('sourceFilter').value;
-  let filtered = (window.BOOKS||[]).filter(b=>{
-    const m = (b.title+' '+(b.author||'')+' '+(b.description||'')).toLowerCase();
-    if(q && !m.includes(q)) return false;
-    if(src && b.source_name !== src) return false;
-    return true;
-  });
-  render(filtered);
+/* Home */
+function renderHome(){
+  page.innerHTML = `<h2>Home</h2><div style="display:flex;gap:12px;align-items:center;margin-top:8px">
+    <div style="flex:1" class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-weight:700">Welcome${currentUser?(', '+escapeHtml(currentUser.username)) : ''}</div><div class="small">Start reading, help others, and earn ranks</div></div>
+        <div style="width:280px"><div class="small">Progress</div><div class="progress" style="margin-top:6px"><i id="progressBar" style="width:0%"></i></div><div style="height:6px"></div><div id="progressText" class="small"></div></div>
+      </div>
+    </div>
+    <div style="width:280px" class="card"><div style="font-weight:700">Quick Actions</div><div style="height:8px"></div><div style="display:flex;flex-direction:column;gap:8px"><button class="tab" onclick="showPage('books')">Browse Books</button><button class="tab" onclick="showPage('novels')">Novels & Poems</button><button class="tab" onclick="showPage('languages')">Learn Languages</button><button class="tab" onclick="showPage('qa')">Self-Test & Questions</button></div></div>
+  </div>
+  <div style="height:12px"></div>
+  <div class="card"><h3>Featured Books</h3><div class="book-grid" id="homeBooks"></div></div>`;
+  const xp = currentUser ? currentUser.xp : 0; const next = nextThreshold(xp);
+  document.getElementById('progressBar').style.width = Math.min(100, Math.round((xp/next)*100)) + '%';
+  document.getElementById('progressText').textContent = `XP ${xp} • Next ${next} • ${xpToRank(xp).name}`;
+  loadBooks().then(()=>{ const hb = document.getElementById('homeBooks'); hb.innerHTML=''; BOOKS.slice(0,6).forEach(b=> hb.appendChild(renderBookCard(b))); });
 }
 
-document.getElementById('q').addEventListener('input', applyFilters);
-document.getElementById('sourceFilter').addEventListener('change', applyFilters);
+/* Books */
+async function loadBooks(){ if(BOOKS.length>0) return; try{ const res = await fetch('books.json'); BOOKS = await res.json(); BOOKS.forEach(b=>{ b.type = b.type || (b.license && b.license.toLowerCase().includes('public') ? 'free' : 'paid'); b.category = b.category || 'general'; b.tags = b.tags || []; }); write(LS_BOOKS, BOOKS); }catch(e){ BOOKS = read(LS_BOOKS, []); } }
+function renderBookCard(b){ const wrap = document.createElement('div'); wrap.className='book-card'; const lic = b.license || 'Unknown'; wrap.innerHTML = `<div style="display:flex;justify-content:space-between"><div><div class="book-title">${escapeHtml(b.title)}</div><div class="small">${escapeHtml(b.author||'Unknown')}</div></div><div style="text-align:right"><div class="small">${escapeHtml(lic)}</div></div></div><div class="meta">${escapeHtml(b.description||'')}</div><div style="height:10px"></div><div style="display:flex;gap:8px"><button class="btn" onclick="openSource('${escapeForJs(b.source_url)}','${b.id}')">Open Source</button>${b.preview_url?`<a class="btn ghost" href="${encodeURI(b.preview_url)}" target="_blank">Preview</a>`:''}${b.type==='paid'?`<button class="btn" onclick="purchasePlaceholder('${b.id}')">Buy</button>`:''}</div>`; return wrap; }
+function escapeForJs(s){ return (s||'').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+function openSource(url,bookId){ window.open(url,'_blank'); if(currentUser) { awardXP(currentUser.id,20); notify('+20 XP for reading'); } }
+function purchasePlaceholder(bookId){ alert('This site does not host copyrighted files. Paid books must be purchased via official stores.'); }
 
-loadBooks().catch(e=>{document.getElementById('results').textContent='Failed to load books.json'; console.error(e)});
+/* Books pages */
+function renderBooks(){ loadBooks().then(()=>{ page.innerHTML=`<h2>All Books</h2><div style="height:8px"></div><div class="card"><div class="tabs" id="booksTabs"><button class="tab active" data-filter="all">All</button><button class="tab" data-filter="free">Free</button><button class="tab" data-filter="paid">Paid</button></div><div style="height:12px"></div><div class="book-grid" id="booksArea"></div></div>`; const tabs = document.querySelectorAll('#booksTabs .tab'); tabs.forEach(t=>t.onclick=()=>{ tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active'); renderBooksFilter(t.dataset.filter); }); renderBooksFilter('all'); }); }
+function renderBooksFilter(filter){ const node=document.getElementById('booksArea'); node.innerHTML=''; const list = BOOKS.filter(b=> filter==='all'?true:b.type===filter); list.forEach(b=>node.appendChild(renderBookCard(b))); }
+
+function renderNovels(){ loadBooks().then(()=>{ page.innerHTML=`<h2>Novels & Poems</h2><div class="card"><div id="novelArea" class="book-grid"></div></div>`; const node=document.getElementById('novelArea'); const list = BOOKS.filter(b=> (b.tags||[]).includes('novel') || (b.category==='novel') || (/poem|poetry/i.test(b.title))); list.forEach(b=>node.appendChild(renderBookCard(b))); }); }
+
+function renderLanguages(){ page.innerHTML=`<h2>Learn Languages</h2><div class="card"><p class="small">Curated open resources for language learning (includes Sign Language).</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px" id="langLinks"></div></div>`; const list=[{name:'English — Project Gutenberg',url:'https://www.gutenberg.org'},{name:'Spanish — OpenLibrary',url:'https://openlibrary.org'},{name:'French — Internet Archive',url:'https://archive.org'},{name:'Sign Language — HandSpeak',url:'https://www.handspeak.com'}]; const n=document.getElementById('langLinks'); list.forEach(l=>{ const a=document.createElement('a'); a.className='tab'; a.href=l.url; a.target='_blank'; a.textContent=l.name; n.appendChild(a); }); }
+
+/* Q&A */
+function readQA(){ return read(LS_QA, {questions:[]}); }
+function saveQA(q){ write(LS_QA,q); }
+function renderQA(){ const data=readQA(); page.innerHTML=`<h2>Self-Test & Questions</h2><div style="height:8px"></div><div class="card"><h4>Ask a question</h4><input id="qTitle" placeholder="Short title" style="width:100%;margin-top:8px"/><div style="height:8px"></div><textarea id="qBody" placeholder="Describe your doubt" style="width:100%;min-height:80px"></textarea><div style="height:10px"></div><button id="postQBtn" class="btn">Post Question</button></div><div style="height:12px"></div><div id="questionsList"></div>`; document.getElementById('postQBtn').onclick = ()=>{ if(!currentUser){ if(confirm('Login to post')) showPage('login'); return; } const t=document.getElementById('qTitle').value.trim(); const b=document.getElementById('qBody').value.trim(); if(!t) return alert('Title required'); const qa=readQA(); qa.questions.unshift({id:createId('q'),title:t,body:b,authorId:currentUser.id,authorName:currentUser.username,createdAt:Date.now(),answers:[]}); saveQA(qa); document.getElementById('qTitle').value=''; document.getElementById('qBody').value=''; notify('Question posted'); renderQA(); }; renderQuestions(); }
+function renderQuestions(){ const qa=readQA(); const node=document.getElementById('questionsList'); node.innerHTML=''; qa.questions.forEach(q=>{ const div=document.createElement('div'); div.className='card'; div.style.marginBottom='8px'; div.innerHTML=`<strong>${escapeHtml(q.title)}</strong><div class="small">by ${escapeHtml(q.authorName)} • ${new Date(q.createdAt).toLocaleString()}</div><div style="height:8px"></div><div class="small">${escapeHtml(q.body)}</div><div style="height:8px"></div><div><button class="btn" onclick="openQuestion('${q.id}')">Open & Answer</button></div>`; node.appendChild(div); }); }
+function openQuestion(id){ const qa = readQA(); const q = qa.questions.find(x=>x.id===id); if(!q) return alert('Not found'); page.innerHTML = `<h3>${escapeHtml(q.title)}</h3><div class="small">by ${escapeHtml(q.authorName)}</div><div style="height:8px"></div><div class="card">${escapeHtml(q.body)}</div><div style="height:12px"></div><div class="card"><h4>Answers</h4><div id="answerList"></div><div style="height:8px"></div><textarea id="answerText" placeholder="Write your answer..." style="width:100%;min-height:80px"></textarea><div style="height:8px"></div><button id="postAnswerBtn" class="btn">Post Answer (+15 XP)</button></div>`; const node=document.getElementById('answerList'); node.innerHTML=''; (q.answers||[]).forEach(a=>{ const block=document.createElement('div'); block.className='card'; block.style.marginBottom='8px'; block.innerHTML=`<strong>${escapeHtml(a.authorName)}</strong> <div class="small">${new Date(a.createdAt).toLocaleString()}</div><div style="height:8px"></div><div class="small">${escapeHtml(a.text)}</div>`; node.appendChild(block); }); document.getElementById('postAnswerBtn').onclick = ()=>{ if(!currentUser){ if(confirm('Login to answer')) showPage('login'); return; } const txt=document.getElementById('answerText').value.trim(); if(!txt) return alert('Write an answer'); const qa2=readQA(); const q2=qa2.questions.find(x=>x.id===id); q2.answers=q2.answers||[]; q2.answers.push({id:createId('a'),text:txt,authorId:currentUser.id,authorName:currentUser.username,createdAt:Date.now()}); saveQA(qa2); awardXP(currentUser.id,15); notify('+15 XP for answering'); openQuestion(id); }; }
+
+/* Community */
+function renderCommunity(){ const users = loadUsers().sort((a,b)=>(b.xp||0)-(a.xp||0)); page.innerHTML=`<h2>Community</h2><div style="height:8px"></div><div id="communityList"></div>`; const node=document.getElementById('communityList'); users.forEach(u=>{ const card=document.createElement('div'); card.className='card'; card.style.marginBottom='8px'; card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:12px;align-items:center"><div class="avatar" style="background:${u.avatarColor}">${escapeHtml(initials(u.username))}</div><div><div style="font-weight:700">${escapeHtml(u.username)}</div><div class="small">${escapeHtml(u.bio||'')}</div></div></div><div style="text-align:right"><div>${renderRankSmall(u.xp)}</div><div style="height:8px"></div><div><button class="btn" onclick="startChat('${u.id}')">Message</button> <button class="btn ghost" onclick="addFriend('${u.id}')">Add Friend</button></div></div></div>`; node.appendChild(card); }); }
+
+/* Friends */
+function addFriend(targetId){ if(!currentUser){ if(confirm('Login to add friends')) showPage('login'); return; } if(currentUser.id===targetId) return alert('Cannot add yourself'); const users=loadUsers(); const meIdx=users.findIndex(u=>u.id===currentUser.id); users[meIdx].friends = users[meIdx].friends||[]; if(users[meIdx].friends.includes(targetId)) return alert('Already friends'); users[meIdx].friends.push(targetId); saveUsers(users); currentUser = users[meIdx]; notify('Friend added'); loadFriendsList(); }
+
+/* Chat local */
+function chatRoomId(a,b){ return [a,b].sort().join('_'); }
+function startChat(otherId){ if(!currentUser){ if(confirm('Login to chat')) showPage('login'); return; } const other = findUserById(otherId); if(!other) return alert('User not found'); activeChat = {peerId:otherId,peerName:other.username}; document.getElementById('chatWith').textContent = 'Chat — ' + other.username; chatPanel.classList.add('open'); loadChat(activeChat); }
+function loadChat(room){ const all = read(LS_CHATS, {}); const msgs = all[chatRoomId(room.peerId, currentUser.id)] || []; chatBody.innerHTML=''; msgs.forEach(m=>{ const d=document.createElement('div'); d.className='msg ' + (m.from===currentUser.id ? 'me' : 'them'); d.innerHTML=`<div style="font-size:13px">${escapeHtml(m.text)}</div><div class="small" style="margin-top:6px">${new Date(m.ts).toLocaleString()}</div>`; chatBody.appendChild(d); }); chatBody.scrollTop = chatBody.scrollHeight; }
+function sendMessage(){ const text = chatText.value.trim(); if(!text) return; const all = read(LS_CHATS, {}); const id = chatRoomId(activeChat.peerId, currentUser.id); all[id] = all[id] || []; all[id].push({from:currentUser.id,to:activeChat.peerId,text,ts:Date.now()}); write(LS_CHATS, all); chatText.value=''; loadChat(activeChat); }
+sendChat.onclick = ()=> sendMessage(); closeChat.onclick = ()=> { chatPanel.classList.remove('open'); activeChat=null; };
+openChatBtn.onclick = ()=> { if(!currentUser){ if(confirm('Login to chat')) showPage('login'); return; } const friends = currentUser.friends||[]; if(friends.length>0) startChat(friends[0]); else alert('You have no friends yet. Use Community to add friends.'); }
+
+/* Helpers */
+function escapeHtml(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function initials(name){ return (name||'').split(' ').map(x=>x[0]||'').slice(0,2).join('').toUpperCase(); }
+function pickColor(seed){ const palette=['#a0632a','#8b5a2b','#9c6a3c','#7a4b2a','#b0783a','#8f5b3b']; let h=0; for(let i=0;i<seed.length;i++) h=(h<<5)-h+seed.charCodeAt(i); return palette[Math.abs(h)%palette.length]; }
+function renderRankSmall(xp){ const r = xpToRank(xp||0); return `<div class="small">XP ${xp||0} • <span class="badge">${r.emoji} ${r.name}</span></div>`; }
+function nextThreshold(xp){ for(let i=0;i<RANKS.length;i++) if(xp < RANKS[i].min) return RANKS[i].min; return RANKS[RANKS.length-1].min; }
+function notify(msg){ console.log('NOTIFY',msg); const t=document.createElement('div'); t.textContent=msg; t.style.position='fixed'; t.style.bottom='18px'; t.style.left='50%'; t.style.transform='translateX(-50%)'; t.style.background='linear-gradient(90deg,var(--accent-2),var(--accent))'; t.style.color='white'; t.style.padding='10px 14px'; t.style.borderRadius='999px'; t.style.boxShadow='0 8px 24px rgba(0,0,0,0.2)'; document.body.appendChild(t); setTimeout(()=> t.style.opacity='0',2400); setTimeout(()=> t.remove(),2800); }
+
+/* Search */
+globalSearch.oninput = async ()=>{ const q = globalSearch.value.trim().toLowerCase(); if(!q){ showPage('home'); return; } await loadBooks(); const matches = BOOKS.filter(b=> (b.title+' '+(b.author||'')+' '+(b.description||'')).toLowerCase().includes(q)); page.innerHTML = `<h2>Search results for "${escapeHtml(globalSearch.value)}"</h2><div class="book-grid" id="searchResults"></div>`; const node=document.getElementById('searchResults'); matches.forEach(b=> node.appendChild(renderBookCard(b))); };
+
+/* Init */
+async function init(){ await (async()=>{ try{ const res = await fetch('books.json'); BOOKS = await res.json(); BOOKS.forEach(b=>{ b.type = b.type || (b.license && b.license.toLowerCase().includes('public') ? 'free' : 'paid'); b.category = b.category || 'general'; b.tags = b.tags || []; }); localStorage.setItem(LS_BOOKS, JSON.stringify(BOOKS)); }catch(e){ BOOKS = read(LS_BOOKS, []); }})(); const s = getSession(); if(s && s.userId){ currentUser = findUserById(s.userId); if(currentUser) applyDecayAndVisit(currentUser); renderRank(); showPage('profile'); setTimeout(()=> showPage('home'),700); } else { showPage('login'); } renderRank(); }
+init();
+
+/* Expose for inline handlers */
+window.showPage = showPage;
+window.openSource = openSource;
+window.startChat = startChat;
+window.addFriend = addFriend;
 </script>
 </body>
 </html>
