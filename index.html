@@ -254,7 +254,8 @@ function renderRegister(){
   <div class="card">
     <h3>Register</h3>
     <input id="regUser" placeholder="Choose username (unique)" style="width:100%;margin-top:8px"/><div style="height:8px"></div>
-    <input id="regEmail" placeholder="Email (optional)" style="width:100%;margin-top:4px"/><div style="height:12px"></div>
+    <input id="regEmail" placeholder="Enter your email" type="email" required style="width:100%;margin-top:4px"/>
+<div style="height:12px"></div>
     <textarea id="regBio" placeholder="Short bio (optional)" style="width:100%;min-height:80px"></textarea>
     <div style="height:12px"></div>
     <div style="display:flex;gap:8px">
@@ -266,9 +267,10 @@ function renderRegister(){
   document.getElementById('createAccount').onclick = ()=>{
     const uname = document.getElementById('regUser').value.trim();
     const email = document.getElementById('regEmail').value.trim();
-    const bio = document.getElementById('regBio').value.trim();
-    if(!uname) return alert('Choose a username');
-    if(findUserByUsername(uname)) return alert('Username taken — try another');
+const bio = document.getElementById('regBio').value.trim();
+if(!uname) return alert('Choose a username');
+if(!email) return alert('Email is required');
+if(findUserByUsername(uname)) return alert('Username taken — try another');
     const users = loadUsers(); const id = createId('u');
     const color = pickColor(uname);
     const newUser = {id, username:uname, usernameLower:uname.toLowerCase(), email, bio, xp:10, lastActive:Date.now(), friends:[], avatarColor:color};
