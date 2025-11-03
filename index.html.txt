@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Online Library (Public Domain)</title>
+  <style>
+    body{font-family:Inter,system-ui,Arial;margin:0;padding:24px;background:#f7f7fb;color:#111}
+    header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+    input,select{padding:8px;border-radius:6px;border:1px solid #ddd}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+    .card{background:#fff;padding:14px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+    .meta{font-size:13px;color:#666;margin-top:6px}
+    .actions{margin-top:10px;display:flex;gap:8px}
+    a.button{padding:8px 10px;border-radius:8px;background:#0b74de;color:#fff;text-decoration:none;font-weight:600}
+    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#eef5ff;color:#0b74de;display:inline-block}
+    footer{margin-top:20px;color:#666;font-size:13px}
+    small.note{color:#555}
+  </style>
+</head>
+<body>
+  <header>
+    <h1 style="margin:0;font-size:20px">Online Library — Public Domain</h1>
+    <div style="flex:1"></div>
+    <input id="q" placeholder="Search title or author" />
+    <select id="sourceFilter">
+      <option value="">All sources</option>
+    </select>
+  </header>
+
+  <main>
+    <div id="results" class="grid"></div>
+    <p id="empty" style="display:none">No results found.</p>
+  </main>
+
+  <footer>
+    <div><small class="note">Only add works that are public-domain or have a license you are allowed to redistribute. Each item must include a license field and a direct source URL.</small></div>
+  </footer>
+
+<script>
+async function loadBooks(){
+  const res = await fetch('books.json');
+  const books = await res.json();
+  window.BOOKS = books;
+  populateSourceFilter(books);
+  render(books);
+}
+
+function populateSourceFilter(books){
+  const sel = document.getElementById('sourceFilter');
+  const sources = Array.from(new Set(books.map(b=>b.source_name).filter(Boolean))).sort();
+  for(const s of sources){
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  }
+}
+
+function render(list){
+  const container = document.getElementById('results');
+  container.innerHTML = '';
+  if(list.length === 0){
+    document.getElementById('empty').style.display='block';
+    return;
+  }
+  document.getElementById('empty').style.display='none';
+  for(const b of list){
+    const c = document.createElement('div'); c.className='card';
+    c.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div>
+          <strong>${escapeHtml(b.title)}</strong>
+          <div class="meta">${escapeHtml(b.author||'Unknown')}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="badge">${escapeHtml(b.license||'Unknown')}</div>
+          <div style="font-size:12px;color:#999">${escapeHtml(b.source_name||'')}</div>
+        </div>
+      </div>
+      <div class="meta">${escapeHtml(b.description||'')}</div>
+      <div class="actions">
+        <a class="button" href="${encodeURI(b.source_url)}" target="_blank" rel="noopener">Open source</a>
+        ${b.preview_url ? `<a class="button" href="${encodeURI(b.preview_url)}" target="_blank" style="background:#666">Preview</a>` : ''}
+      </div>
+    `;
+    container.appendChild(c);
+  }
+}
+
+function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+function applyFilters(){
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const src = document.getElementById('sourceFilter').value;
+  let filtered = (window.BOOKS||[]).filter(b=>{
+    const m = (b.title+' '+(b.author||'')+' '+(b.description||'')).toLowerCase();
+    if(q && !m.includes(q)) return false;
+    if(src && b.source_name !== src) return false;
+    return true;
+  });
+  render(filtered);
+}
+
+document.getElementById('q').addEventListener('input', applyFilters);
+document.getElementById('sourceFilter').addEventListener('change', applyFilters);
+
+loadBooks().catch(e=>{document.getElementById('results').textContent='Failed to load books.json'; console.error(e)});
+</script>
+</body>
+</html>

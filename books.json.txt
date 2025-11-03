@@ -1,0 +1,32 @@
+[
+  {
+    "id": "pd-001",
+    "title": "Pride and Prejudice",
+    "author": "Jane Austen",
+    "description": "Novel — public domain.",
+    "license": "Public Domain",
+    "source_name": "Project Gutenberg",
+    "source_url": "https://www.gutenberg.org/ebooks/1342",
+    "preview_url": ""
+  },
+  {
+    "id": "pd-002",
+    "title": "The Adventures of Sherlock Holmes",
+    "author": "Arthur Conan Doyle",
+    "description": "Short stories — public domain.",
+    "license": "Public Domain",
+    "source_name": "Project Gutenberg",
+    "source_url": "https://www.gutenberg.org/ebooks/1661",
+    "preview_url": ""
+  },
+  {
+    "id": "pd-003",
+    "title": "Example CC Work",
+    "author": "Some Author",
+    "description": "Creative Commons licensed sample (replace with real CC link).",
+    "license": "CC BY 4.0",
+    "source_name": "Internet Archive",
+    "source_url": "https://archive.org/details/example",
+    "preview_url": ""
+  }
+]
