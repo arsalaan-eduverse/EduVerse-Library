@@ -3,30 +3,39 @@
     "id": "pd-001",
     "title": "Pride and Prejudice",
     "author": "Jane Austen",
-    "description": "Novel — public domain.",
+    "description": "A classic novel — public domain.",
     "license": "Public Domain",
+    "type": "free",
+    "category": "novel",
+    "tags": ["novel","classic","romance"],
     "source_name": "Project Gutenberg",
     "source_url": "https://www.gutenberg.org/ebooks/1342",
-    "preview_url": ""
+    "preview_url": "https://www.gutenberg.org/cache/epub/1342/pg1342.images.html"
   },
   {
     "id": "pd-002",
     "title": "The Adventures of Sherlock Holmes",
     "author": "Arthur Conan Doyle",
-    "description": "Short stories — public domain.",
+    "description": "Short stories featuring Sherlock Holmes — public domain.",
     "license": "Public Domain",
+    "type": "free",
+    "category": "novel",
+    "tags": ["detective","classic"],
     "source_name": "Project Gutenberg",
     "source_url": "https://www.gutenberg.org/ebooks/1661",
-    "preview_url": ""
+    "preview_url": "https://www.gutenberg.org/cache/epub/1661/pg1661.html"
   },
   {
-    "id": "pd-003",
-    "title": "Example CC Work",
-    "author": "Some Author",
-    "description": "Creative Commons licensed sample (replace with real CC link).",
-    "license": "CC BY 4.0",
-    "source_name": "Internet Archive",
-    "source_url": "https://archive.org/details/example",
+    "id": "paid-001",
+    "title": "Paid Book Example (placeholder)",
+    "author": "Author Name",
+    "description": "Paid book placeholder. Link to official store for purchases.",
+    "license": "Commercial",
+    "type": "paid",
+    "category": "general",
+    "tags": ["paid"],
+    "source_name": "Official Store",
+    "source_url": "https://example.com/product/paid-001",
     "preview_url": ""
   }
 ]
