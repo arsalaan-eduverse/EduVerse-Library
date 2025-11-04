@@ -24,6 +24,46 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+    // --- Keep users logged in until they manually logout ---
+import { setPersistence, browserLocalPersistence, onAuthStateChanged, signOut } 
+  from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+// Enable local persistence (keeps login after browser close)
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("✅ Firebase persistence enabled — user sessions saved locally");
+  })
+  .catch((error) => {
+    console.error("Persistence setup failed:", error);
+  });
+
+// Listen for login state changes (auto-login when site reopens)
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log("🔥 User already signed in:", user.email);
+    const users = JSON.parse(localStorage.getItem('ev_users_v1')) || [];
+    let localUser = users.find(u => u.email === user.email);
+
+    if (!localUser) {
+      localUser = {
+        id: 'u' + Date.now().toString(36),
+        username: user.email.split('@')[0],
+        email: user.email,
+        xp: 10,
+        lastActive: Date.now(),
+        friends: []
+      };
+      users.push(localUser);
+      localStorage.setItem('ev_users_v1', JSON.stringify(users));
+    }
+
+    localStorage.setItem('ev_session_v1', JSON.stringify({ userId: localUser.id }));
+    console.log("Session restored for:", localUser.username);
+  } else {
+    console.log("No existing user session — show login page");
+  }
+});
+
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -340,7 +380,13 @@ function renderProfile(){
     users[idx].avatarColor = users[idx].avatarColor || pickColor(newU); saveUsers(users);
     currentUser = users[idx]; setSession(currentUser.id); notify('Profile saved'); renderRank(); renderProfile();
   };
-  document.getElementById('logoutBtn').onclick = ()=>{ clearSession(); showPage('login'); };
+ document.getElementById('logoutBtn').onclick = async () => {
+  await signOut(auth);
+  clearSession();
+  showPage('login');
+  alert('You have been logged out successfully.');
+};
+
 }
 
 /* Home */
