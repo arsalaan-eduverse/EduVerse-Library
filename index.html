@@ -306,12 +306,12 @@ function showPage(pageName){
 
 /* Login / Register */
 function renderLogin(){
-page.innerHTML = `<h2>Welcome to EduVerse Library</h2>
+  page.innerHTML = `<h2>Welcome to EduVerse Library</h2>
   <div style="height:8px"></div>
   <div class="card">
     <h3>Login</h3>
     <input id="loginUser" placeholder="Username" style="width:100%;margin-top:8px"/>
-    <input id="loginEmail" placeholder="Email" type="email" style="width:100%;margin-top:8px"/>
+    <input id="loginEmail" placeholder="Email (for password reset)" type="email" style="width:100%;margin-top:8px"/>
     <div style="height:8px"></div>
     <div style="display:flex;gap:8px">
       <button id="doLogin" class="btn">Login</button>
@@ -322,6 +322,29 @@ page.innerHTML = `<h2>Welcome to EduVerse Library</h2>
     <div style="height:10px"></div>
     <div class="small">If you're new click Register. Usernames must be unique.</div>
   </div>`;
+
+  // --- Local login logic ---
+  document.getElementById('doLogin').onclick = ()=>{
+    const uname = document.getElementById('loginUser').value.trim();
+    if(!uname) return alert('Enter username');
+    const user = findUserByUsername(uname);
+    if(!user) return alert('User not found. Please register.');
+    setSession(user.id);
+    applyDecayAndVisit(user);
+    renderRank();
+    showPage('profile');
+  };
+
+  // --- Go to Register ---
+  document.getElementById('toRegister').onclick = ()=> renderRegister();
+
+  // --- Forgot Password helper ---
+  document.getElementById('forgotPassBtn').onclick = async ()=>{
+    const email = document.getElementById('loginEmail').value.trim();
+    if(!email) return alert('Please enter your registered email.');
+    await window.resetPasswordFirebase(email);
+  };
+}
 
 document.getElementById('doLogin').onclick = ()=>{
   const uname = document.getElementById('loginUser').value.trim();
