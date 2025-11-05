@@ -4,14 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>EduVerse Library — Warm Library Theme</title>
- <script type="module">
+
+<!-- ✅ Firebase Initialization -->
+<script type="module">
   /* ================================
      Firebase Initialization + Auth
      ================================ */
-  import {
-    initializeApp
-  } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
   import {
     getAuth,
     setPersistence,
@@ -20,36 +19,27 @@
     signOut
   } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-  // --- Your Firebase config ---
   const firebaseConfig = {
     apiKey: "AIzaSyBzXsyG-h3NKZzHBkJ89RM1fKWzsOLNYtE",
     authDomain: "eduverse-library.firebaseapp.com",
     projectId: "eduverse-library",
-    storageBucket: "eduverse-library.appspot.com",  // ✅ FIXED
+    storageBucket: "eduverse-library.appspot.com",
     messagingSenderId: "294742664429",
     appId: "1:294742664429:web:bff2d66a347a46cac1d8e4"
   };
 
-  // --- Initialize Firebase + Auth ---
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
-  // --- Keep users logged in until manual logout ---
   setPersistence(auth, browserLocalPersistence)
-    .then(() => {
-      console.log("✅ Firebase persistence enabled — session saved locally");
-    })
-    .catch((error) => {
-      console.error("❌ Persistence setup failed:", error);
-    });
+    .then(() => console.log("✅ Firebase persistence enabled"))
+    .catch((e) => console.error("❌ Persistence setup failed:", e));
 
-  // --- Restore session automatically if user was signed in ---
   onAuthStateChanged(auth, (user) => {
     if (user) {
       console.log("🔥 User already signed in:", user.email);
       const users = JSON.parse(localStorage.getItem("ev_users_v1")) || [];
       let localUser = users.find((u) => u.email === user.email);
-
       if (!localUser) {
         localUser = {
           id: "u" + Date.now().toString(36),
@@ -62,85 +52,26 @@
         users.push(localUser);
         localStorage.setItem("ev_users_v1", JSON.stringify(users));
       }
-
       localStorage.setItem(
         "ev_session_v1",
         JSON.stringify({ userId: localUser.id })
       );
-      console.log("Session restored for:", localUser.username);
     } else {
-      console.log("No existing user session — show login page");
+      console.log("No existing user session");
     }
   });
 
-  // --- Global helper for logout ---
   window.signOutFirebase = async () => {
     try {
       await signOut(auth);
-      console.log("User signed out from Firebase");
+      console.log("User signed out");
     } catch (err) {
       console.error("Logout failed:", err);
     }
   };
 </script>
 
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-    
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBzXsyG-h3NKZzHBkJ89RM1fKWzsOLNYtE",
-    authDomain: "eduverse-library.firebaseapp.com",
-    projectId: "eduverse-library",
-    storageBucket: "eduverse-library.firebasestorage.app",
-    messagingSenderId: "294742664429",
-    appId: "1:294742664429:web:bff2d66a347a46cac1d8e4"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-    // --- Keep users logged in until they manually logout ---
-import { setPersistence, browserLocalPersistence, onAuthStateChanged, signOut } 
-  from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-
-// Enable local persistence (keeps login after browser close)
-setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log("✅ Firebase persistence enabled — user sessions saved locally");
-  })
-  .catch((error) => {
-    console.error("Persistence setup failed:", error);
-  });
-
-// Listen for login state changes (auto-login when site reopens)
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    console.log("🔥 User already signed in:", user.email);
-    const users = JSON.parse(localStorage.getItem('ev_users_v1')) || [];
-    let localUser = users.find(u => u.email === user.email);
-
-    if (!localUser) {
-      localUser = {
-        id: 'u' + Date.now().toString(36),
-        username: user.email.split('@')[0],
-        email: user.email,
-        xp: 10,
-        lastActive: Date.now(),
-        friends: []
-      };
-      users.push(localUser);
-      localStorage.setItem('ev_users_v1', JSON.stringify(users));
-    }
-
-    localStorage.setItem('ev_session_v1', JSON.stringify({ userId: localUser.id }));
-    console.log("Session restored for:", localUser.username);
-  } else {
-    console.log("No existing user session — show login page");
-  }
-});
-
-</script>
+<!-- Fonts + Styling -->
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   /* Warm Library Tone */
