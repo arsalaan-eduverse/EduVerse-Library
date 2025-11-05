@@ -323,55 +323,6 @@ function renderLogin(){
     <div class="small">If you're new click Register. Usernames must be unique.</div>
   </div>`;
 
-  // --- Local login logic ---
-  document.getElementById('doLogin').onclick = ()=>{
-    const uname = document.getElementById('loginUser').value.trim();
-    if(!uname) return alert('Enter username');
-    const user = findUserByUsername(uname);
-    if(!user) return alert('User not found. Please register.');
-    setSession(user.id);
-    applyDecayAndVisit(user);
-    renderRank();
-    showPage('profile');
-  };
-
-  // --- Go to Register ---
-  document.getElementById('toRegister').onclick = ()=> renderRegister();
-
-  // --- Forgot Password helper ---
-  document.getElementById('forgotPassBtn').onclick = async ()=>{
-    const email = document.getElementById('loginEmail').value.trim();
-    if(!email) return alert('Please enter your registered email.');
-    await window.resetPasswordFirebase(email);
-  };
-}
-
-document.getElementById('doLogin').onclick = ()=>{
-  const uname = document.getElementById('loginUser').value.trim();
-  if(!uname) return alert('Enter username');
-  const user = findUserByUsername(uname);
-  if(!user) return alert('User not found. Please register.');
-  setSession(user.id); applyDecayAndVisit(user); renderRank(); showPage('profile');
-};
-
-document.getElementById('toRegister').onclick = ()=> renderRegister();
-
-document.getElementById('forgotPassBtn').onclick = async ()=>{
-  const email = document.getElementById('loginEmail').value.trim();
-  if(!email) return alert('Please enter your registered email.');
-  await window.resetPasswordFirebase(email);
-};
-
-  document.getElementById('doLogin').onclick = ()=>{
-    const uname = document.getElementById('loginUser').value.trim();
-    if(!uname) return alert('Enter username');
-    const user = findUserByUsername(uname);
-    if(!user) return alert('User not found. Please register.');
-    setSession(user.id); applyDecayAndVisit(user); renderRank(); showPage('profile');
-  };
-  document.getElementById('toRegister').onclick = ()=> renderRegister();
-}
-
 function renderRegister(){
   page.innerHTML = `<h2>Create account</h2>
   <div style="height:8px"></div>
