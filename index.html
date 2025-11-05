@@ -11,13 +11,14 @@
      Firebase Initialization + Auth
      ================================ */
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import {
-    getAuth,
-    setPersistence,
-    browserLocalPersistence,
-    onAuthStateChanged,
-    signOut
-  } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
+  signOut,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBzXsyG-h3NKZzHBkJ89RM1fKWzsOLNYtE",
@@ -69,6 +70,17 @@
       console.error("Logout failed:", err);
     }
   };
+  // --- Forgot Password helper ---
+window.resetPasswordFirebase = async (email) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert("✅ Password reset link sent to " + email);
+  } catch (err) {
+    console.error("Password reset failed:", err);
+    alert("⚠️ Could not send reset email: " + err.message);
+  }
+};
+
 </script>
 
 <!-- Fonts + Styling -->
