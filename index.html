@@ -606,18 +606,140 @@
   };
   window.purchasePlaceholder = function(bookId){ alert('This site does not host copyrighted files. Paid books must be purchased via official stores.'); };
 
-  function renderBooks(){
-    loadBooks().then(()=>{
-      page.innerHTML = `<h2>All Books</h2><div style="height:8px"></div><div class="card"><div class="tabs" id="booksTabs"><button class="tab active" data-filter="all">All</button><button class="tab" data-filter="free">Free</button><button class="tab" data-filter="paid">Paid</button></div><div style="height:12px"></div><div class="book-grid" id="booksArea"></div></div>`;
-      const tabs = document.querySelectorAll('#booksTabs .tab');
-      tabs.forEach(t=> t.onclick = ()=>{
-        tabs.forEach(x=>x.classList.remove('active'));
-        t.classList.add('active');
-        renderBooksFilter(t.dataset.filter);
-      });
-      renderBooksFilter('all');
+ function renderBooks() {
+  loadBooks().then(() => {
+    page.innerHTML = `
+      <h2>📚 Education</h2>
+      <div style="height:8px"></div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div class="tabs" id="booksTabs">
+            <button class="tab active" data-filter="all">All</button>
+            <button class="tab" data-filter="free">Free</button>
+            <button class="tab" data-filter="paid">Paid</button>
+          </div>
+          <select id="subjectFilter" style="
+            background:var(--card);
+            color:var(--accent);
+            border:1px solid var(--accent);
+            border-radius:8px;
+            padding:6px 10px;
+            font-weight:600;
+          ">
+            <option value="all">All Subjects</option>
+            <option value="science">Science</option>
+            <option value="math">Math</option>
+            <option value="history">History</option>
+            <option value="technology">Technology</option>
+            <option value="arts">Arts</option>
+            <option value="language">Language</option>
+          </select>
+        </div>
+        <div style="height:12px"></div>
+        <div class="book-grid" id="booksArea"></div>
+      </div>
+    `;
+
+    const tabs = document.querySelectorAll("#booksTabs .tab");
+    const subjectSelect = document.getElementById("subjectFilter");
+
+    tabs.forEach((t) =>
+      t.addEventListener("click", () => {
+        tabs.forEach((x) => x.classList.remove("active"));
+        t.classList.add("active");
+        renderBooksFilter(t.dataset.filter, subjectSelect.value);
+      })
+    );
+
+    subjectSelect.addEventListener("change", () => {
+      const activeTab = document.querySelector("#booksTabs .tab.active");
+      renderBooksFilter(activeTab.dataset.filter, subjectSelect.value);
     });
+
+    renderBooksFilter("all", "all");
+  });
+}
+
+function renderBooksFilter(filter, subject) {
+  const node = document.getElementById("booksArea");
+  node.innerHTML = "";
+
+  const list = BOOKS.filter((b) => {
+    const typeMatch = filter === "all" ? true : b.type === filter;
+    const subjMatch =
+      subject === "all" ||
+      (b.category && b.category.toLowerCase().includes(subject)) ||
+      (b.tags && b.tags.join(" ").toLowerCase().includes(subject));
+    // Exclude novels and poems from Education
+    const notNovel =
+      !(b.tags || []).includes("novel") &&
+      !/novel|poem|poetry/i.test(b.title);
+    return typeMatch && subjMatch && notNovel;
+  });
+
+  if (list.length === 0) {
+    node.innerHTML =
+      '<div class="small" style="text-align:center">No books found for this filter.</div>';
+    return;
   }
+
+  list.forEach((b) => node.appendChild(renderBookCard(b)));
+}
+
+// Updated book card layout with placeholder cover
+function renderBookCard(b) {
+  const wrap = document.createElement("div");
+  wrap.className = "book-card";
+  wrap.style.display = "flex";
+  wrap.style.alignItems = "flex-start";
+  wrap.style.gap = "10px";
+
+  const cover = document.createElement("img");
+  cover.src = "https://placehold.co/120x160?text=Book";
+  cover.alt = b.title;
+  cover.style.width = "100px";
+  cover.style.height = "140px";
+  cover.style.borderRadius = "10px";
+  cover.style.objectFit = "cover";
+  cover.style.border = "1px solid var(--accent)";
+  wrap.appendChild(cover);
+
+  const details = document.createElement("div");
+  details.style.flex = "1";
+  details.innerHTML = `
+    <div style="display:flex;justify-content:space-between">
+      <div>
+        <div class="book-title">${escapeHtml(b.title)}</div>
+        <div class="small">${escapeHtml(b.author || "Unknown")}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="small">${escapeHtml(b.license || "Unknown")}</div>
+      </div>
+    </div>
+    <div class="meta">${escapeHtml(b.description || "")}</div>
+    <div style="height:10px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="openSource('${escapeForJs(
+        b.source_url
+      )}','${b.id}')">Open Source</button>
+      ${
+        b.preview_url
+          ? `<a class="btn ghost" href="${encodeURI(
+              b.preview_url
+            )}" target="_blank">Preview</a>`
+          : ""
+      }
+      ${
+        b.type === "paid"
+          ? `<button class="btn" onclick="purchasePlaceholder('${b.id}')">Buy</button>`
+          : ""
+      }
+    </div>
+  `;
+  wrap.appendChild(details);
+  return wrap;
+}
+
 
   function renderBooksFilter(filter){
     const node = document.getElementById('booksArea'); node.innerHTML='';
