@@ -3,22 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>EduVerse Library — Paper & Gold</title>
-
+<title>EduVerse Library — Polished Black & Gold</title>
 <!-- Libre Franklin -->
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-<!-- Firebase (kept original config you provided) -->
+<!-- Firebase (auth for forgot-password) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import {
-    getAuth,
-    setPersistence,
-    browserLocalPersistence,
-    onAuthStateChanged,
-    signOut,
-    sendPasswordResetEmail
-  } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+  import { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBzXsyG-h3NKZzHBkJ89RM1fKWzsOLNYtE",
@@ -31,972 +23,460 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  setPersistence(auth, browserLocalPersistence).catch(console.warn);
 
-  setPersistence(auth, browserLocalPersistence).catch((e)=>console.warn('Firebase persistence:',e));
-
-  // expose helper for UI script
-  window._firebase = { auth, sendPasswordResetEmail };
-  onAuthStateChanged(auth, (user)=>{
-    // delegate UI sync to main script (it listens for window events)
-    window.dispatchEvent(new CustomEvent('fv_auth_state', { detail: user || null }));
-  });
-
-  window.signOutFirebase = async () => {
-    try {
-      await signOut(auth);
-      console.log('Firebase: signed out');
-    } catch (err) {
-      console.error('Firebase signOut failed', err);
-    }
-  };
-
+  // Expose a helper for password reset
   window.resetPasswordFirebase = async (email) => {
-    try {
-      await sendPasswordResetEmail(auth, email);
-      return { ok:true, message: 'Reset email sent' };
-    } catch (err) {
-      return { ok:false, message: err.message || String(err) };
-    }
-  };
+    if(!email) return alert('Enter email to reset');
+    try{ await sendPasswordResetEmail(auth, email); alert('Password reset link sent to '+email); }catch(e){ console.error(e); alert('Failed to send reset: '+(e.message||e)); }
+  }
+
+  // simple exposed sign out
+  window.signOutFirebase = async ()=>{
+    try{ await signOut(auth); console.log('signed out firebase'); }catch(e){console.warn(e)}
+  }
 </script>
 
 <style>
   :root{
-    --paper-bg: #fbf7ef;
-    --paper-card: #fffaf3;
-    --muted: #6b4f3b;
-    --text: #2b1f16;
-    --gold: #c79a3d;
-    --gold-2: #b07f2c;
-    --shadow: rgba(35,20,10,0.06);
+    --bg: #fbf7ef; /* original warm background kept */
+    --paper: #fffdf8;
+    --muted: #a89a8f;
+    --text:#111;
+    --gold:#b98a2b;
+    --gold-strong:#d4a24a;
+    --card-shadow: 0 10px 30px rgba(0,0,0,0.12);
     --glass: rgba(255,255,255,0.6);
-    --radius: 12px;
-    --transition: 220ms cubic-bezier(.2,.9,.2,1);
   }
-
-  /* Dark: black + gold */
   [data-theme="dark"]{
-    --paper-bg: #0b0b0b;
-    --paper-card: #0f0f10;
-    --muted: #bfa86d;
-    --text: #f2e9dc;
-    --gold: #ffd66b;
-    --gold-2: #c89b3a;
-    --shadow: rgba(0,0,0,0.6);
-    --glass: rgba(255,255,255,0.03);
+    --bg:#0b0b0b;
+    --paper:#0f0f0f;
+    --muted:#bfb9b2;
+    --text:#f6f3f0;
+    --gold:#c79a3d;
+    --gold-strong:#e0b564;
+    --card-shadow: 0 12px 38px rgba(0,0,0,0.6);
+    --glass: rgba(255,255,255,0.04);
   }
 
-  /* Base */
   *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;
-    font-family:"Libre Franklin", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: var(--paper-bg);
-    color: var(--text);
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    min-height:100vh;
-    transition: background var(--transition), color var(--transition);
-    line-height:1.4;
-  }
+  body{font-family:'Libre Franklin',system-ui,Arial;margin:0;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .wrap{max-width:1200px;margin:18px auto;padding:18px}
 
-  /* Subtle paper texture (data-uri SVG) */
-  body[data-theme="light"]{
-    background-image:
-      radial-gradient(rgba(0,0,0,0.015) 0.5px, transparent 0.6px),
-      linear-gradient(180deg, rgba(255,255,255,0.12), rgba(0,0,0,0.02));
-    background-size:22px 22px, 100% 12px;
-  }
+  header{display:flex;flex-direction:column;gap:12px}
+  .topbar{display:flex;align-items:center;gap:12px}
+  .brand{font-weight:700;font-size:20px;color:var(--gold-strong);display:flex;flex-direction:column}
+  .brand .tag{font-size:12px;color:var(--muted);font-weight:400}
 
-  .wrap{
-    max-width:1150px;
-    margin:28px auto;
-    padding:22px;
-  }
-
-  header{display:flex;align-items:center;gap:14px}
-  .brand{font-weight:700;font-size:22px;color:var(--gold-2);line-height:1}
-  .tagline{font-size:13px;color:var(--muted);margin-top:2px}
-
-  nav{margin-left:auto;display:flex;gap:10px;align-items:center}
-  .search{min-width:240px;padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);background:transparent;color:var(--text)}
-  .btn{padding:8px 12px;border-radius:10px;background:linear-gradient(90deg,var(--gold),var(--gold-2));color:#061010;border:none;font-weight:600;cursor:pointer;box-shadow:0 6px 18px var(--shadow);transition:transform 140ms ease, box-shadow 160ms ease}
-  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px var(--shadow)}
-  .btn.ghost{background:transparent;color:var(--text);border:1px solid rgba(0,0,0,0.06)}
+  .tools{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .btn{padding:8px 12px;border-radius:10px;background:var(--gold);color:#040404;border:none;cursor:pointer;font-weight:700}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);font-weight:600}
   .small{font-size:13px;color:var(--muted)}
 
-  .grid{display:grid;grid-template-columns: 1fr 340px; gap:18px;margin-top:18px}
-  .card{
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
-    border-radius:var(--radius);
-    padding:16px;
-    border:1px solid rgba(0,0,0,0.04);
-    box-shadow: 0 12px 30px var(--shadow);
-    background-color: var(--paper-card);
-    transition: transform var(--transition), box-shadow var(--transition);
-  }
-  .card:hover{ transform: translateY(-4px); box-shadow: 0 18px 44px var(--shadow) }
+  /* Two-row navigation */
+  nav.secondary{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:6px 0}
+  .nav-item{padding:8px 12px;border-radius:999px;background:transparent;border:1px solid transparent;color:var(--muted);cursor:pointer}
+  .nav-item.active{background:linear-gradient(90deg,var(--gold),var(--gold-strong));color:#0b0b0b;border-color:transparent;font-weight:700}
+  .nav-item.hidden{display:none}
 
-  h2{margin:0 0 10px 0;font-weight:700}
-  h3{margin:0;font-weight:700}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:18px;margin-top:14px}
+  .card{background:var(--paper);padding:16px;border-radius:12px;box-shadow:var(--card-shadow);border:1px solid rgba(0,0,0,0.03)}
 
-  /* Book grid */
   .book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-  .book-card{padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.03);background:linear-gradient(180deg,transparent,rgba(0,0,0,0.01))}
+  .book-card{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04);background:linear-gradient(180deg,transparent, rgba(0,0,0,0.01))}
+  .book-cover{width:72px;height:100px;border-radius:6px;object-fit:cover;flex-shrink:0;background:#eee}
+  .book-meta{flex:1}
+  .book-title{font-weight:700;color:var(--gold-strong);margin-bottom:6px}
+  .book-author{font-size:13px;color:var(--muted);margin-bottom:8px}
+  .book-actions{display:flex;gap:8px}
 
-  .book-title{font-weight:700;color:var(--gold-2)}
-  .meta{color:var(--muted);font-size:14px;margin-top:8px}
+  /* Chat panel adjustments */
+  .chat-panel{position:fixed;right:20px;bottom:20px;height:520px;width:420px;transform:translateY(20px);transition:all .24s ease;z-index:1500;opacity:0;pointer-events:none}
+  .chat-panel.open{opacity:1;pointer-events:auto;transform:translateY(0)}
+  .chat-panel .panel{height:100%;display:flex;flex-direction:column;background:var(--paper);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.4);overflow:hidden}
+  .chat-body{flex:1;overflow:auto;padding:12px}
+  .chat-input{display:flex;padding:12px;border-top:1px solid rgba(0,0,0,0.04);gap:8px}
 
-  /* Profile area */
-  .avatar{width:72px;height:72px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;color:white;background:var(--gold-2);font-size:20px}
-
-  .progress{height:10px;border-radius:999px;background:rgba(0,0,0,0.04);overflow:hidden}
-  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-2),var(--gold));width:0%;transition:width 420ms ease}
+  .tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .tab{padding:8px 12px;border-radius:999px;background:transparent;border:1px solid rgba(0,0,0,0.03);cursor:pointer;color:var(--muted)}
+  .tab.active{background:var(--gold);color:#0b0b0b}
 
   footer.app-foot{margin-top:20px;color:var(--muted);text-align:center;font-size:13px}
 
-  /* Chat */
-  .chat-panel{position:fixed;right:12px;bottom:12px;width:380px;max-height:78vh;border-radius:12px;overflow:hidden;transform:translateY(20px) scale(.98);opacity:0;transition:all 240ms ease;z-index:1200}
-  .chat-panel.open{transform:none;opacity:1}
-  .chat-panel .panel{height:100%;display:flex;flex-direction:column;background:var(--paper-card);border:1px solid rgba(0,0,0,0.06)}
-  .chat-body{flex:1;overflow:auto;padding:12px}
-  .chat-input{display:flex;padding:12px;border-top:1px solid rgba(0,0,0,0.04);gap:8px}
-  .msg{margin-bottom:8px;padding:8px;border-radius:12px;display:inline-block;max-width:82%}
-  .msg.me{background:linear-gradient(90deg,var(--gold-2),var(--gold));color:#081010;margin-left:auto;border:1px solid rgba(0,0,0,0.03)}
-  .msg.them{background:var(--glass);border:1px solid rgba(0,0,0,0.03)}
-
-  /* Responsive */
-  @media (max-width:980px){ .grid{grid-template-columns:1fr} .chat-panel{width:100%;right:0;left:0;margin:0} .wrap{padding:14px} }
+  /* responsive */
+  @media (max-width:980px){ .grid{grid-template-columns:1fr} .chat-panel{right:10px;left:10px;width:auto} }
 </style>
 </head>
-<body>
-  <div id="app" class="wrap" data-theme>
-    <header>
-      <div>
-        <div class="brand">EduVerse <span class="small" style="font-weight:600;margin-left:6px">Library</span></div>
-        <div class="tagline small">Learn • Share • Grow</div>
+<body data-theme="dark">
+<div class="wrap">
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div>EduVerse <span style="font-weight:800;color:var(--gold)">Library</span></div>
+        <div class="tag">Learn • Share • Grow</div>
       </div>
 
-      <nav aria-label="Main navigation">
-        <input id="globalSearch" class="search" placeholder="Search titles, authors or topics" aria-label="Search books">
-        <button id="themeToggle" class="btn ghost" aria-pressed="false" title="Toggle theme">Theme</button>
-        <div id="rankArea" class="small" style="display:flex;align-items:center;gap:10px"></div>
-        <button id="openChatBtn" class="btn ghost" title="Open chat">Chat</button>
-        <button id="navProfileBtn" class="btn" title="Profile">Profile</button>
-      </nav>
-    </header>
-
-    <main>
-      <div class="grid" id="mainGrid">
-        <section>
-          <div id="page" class="card" aria-live="polite">
-            <!-- SPA content injected here -->
-          </div>
-          <div class="small" style="margin-top:10px">All free works must include license & source; paid items link to purchase pages to avoid copyright issues.</div>
-        </section>
-
-        <aside>
-          <div class="card" aria-labelledby="navHeading">
-            <h4 id="navHeading" style="margin:0">Navigation</h4>
-            <div style="height:10px"></div>
-            <div class="tabs" id="sideTabs" role="tablist" aria-label="Side navigation">
-              <button class="tab" data-page="login" role="tab">Login</button>
-              <button class="tab" data-page="profile" role="tab">Profile</button>
-              <button class="tab active" data-page="home" role="tab">Home</button>
-              <button class="tab" data-page="books" role="tab">Books</button>
-              <button class="tab" data-page="novels" role="tab">Novels & Poems</button>
-              <button class="tab" data-page="languages" role="tab">Languages</button>
-              <button class="tab" data-page="qa" role="tab">Self-Test & Questions</button>
-              <button class="tab" data-page="community" role="tab">Community</button>
-            </div>
-          </div>
-
-          <div style="height:12px"></div>
-
-          <div class="card">
-            <h4 style="margin:0">Your Friends</h4>
-            <div id="friendsList" style="margin-top:10px"></div>
-          </div>
-        </aside>
-      </div>
-    </main>
-
-    <footer class="app-foot">EduVerse Library — Paper & Gold • All material linked from public-domain or authorized sources</footer>
-  </div>
-
-  <!-- Chat panel (floating) -->
-  <div id="chatPanel" class="chat-panel" aria-hidden="true">
-    <div class="panel" role="dialog" aria-label="Chat panel">
-      <div style="padding:14px;border-bottom:1px solid rgba(0,0,0,0.04);display:flex;align-items:center">
-        <strong id="chatWith">Chat</strong>
-        <div style="flex:1"></div>
-        <button id="closeChat" class="btn ghost">Close</button>
-      </div>
-      <div id="chatBody" class="chat-body"></div>
-      <div class="chat-input">
-        <input id="chatText" placeholder="Message..." aria-label="Message" style="flex:1;padding:10px;border-radius:8px" />
-        <button id="sendChat" class="btn">Send</button>
+      <div class="tools">
+        <input id="globalSearch" class="small" placeholder="Search titles, authors or topics" style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)">
+        <button id="themeToggle" class="btn ghost">Toggle Theme</button>
+        <div id="userArea" class="small">Not signed in</div>
+        <button id="openChatBtn" class="btn ghost">Chat</button>
+        <button id="navProfileBtn" class="btn">Profile</button>
       </div>
     </div>
+
+    <!-- secondary nav: two rows feel achieved by header + this secondary nav -->
+    <nav class="secondary" id="secondaryNav">
+      <button class="nav-item" data-page="home">Home</button>
+      <button class="nav-item" data-page="education">Education 📚</button>
+      <button class="nav-item" data-page="novels">Novels & Poems ✍️</button>
+      <button class="nav-item" data-page="languages">Languages 🌍</button>
+      <button class="nav-item" data-page="ai">AI Tutor 🤖</button>
+      <button class="nav-item" data-page="qa">Self-Test 🧩</button>
+      <button class="nav-item" data-page="community">Community 💬</button>
+      <button class="nav-item" id="loginTab" data-page="login">Login</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="grid">
+      <section>
+        <div id="page" class="card"> <!-- SPA content injected --> </div>
+        <div class="small" style="margin-top:10px">All free works must include license & source; paid items link to purchase pages to avoid copyright issues.</div>
+      </section>
+
+      <aside>
+        <div class="card">
+          <h4 style="margin:0">Navigation</h4>
+          <div style="height:10px"></div>
+          <div id="sideNavList" class="tabs">
+            <!-- side shortcuts (duplicates of top nav, kept minimal) -->
+            <button class="tab" data-page="home">Home</button>
+            <button class="tab" data-page="education">Education</button>
+            <button class="tab" data-page="novels">Novels</button>
+            <button class="tab" data-page="community">Community</button>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="card">
+          <h4 style="margin:0">Your Friends</h4>
+          <div id="friendsList" style="margin-top:10px"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="app-foot">EduVerse Library — Polished Black & Gold • Keep repository on GitHub</footer>
+</div>
+
+<!-- Chat panel -->
+<div id="chatPanel" class="chat-panel">
+  <div class="panel">
+    <div style="padding:14px;border-bottom:1px solid rgba(0,0,0,0.04);display:flex;align-items:center">
+      <strong id="chatWith">Chat</strong><div style="flex:1"></div><button id="closeChat" class="btn ghost">Close</button>
+    </div>
+    <div id="chatBody" class="chat-body"></div>
+    <div class="chat-input">
+      <input id="chatText" placeholder="Message..." style="flex:1;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);background:transparent;color:var(--text)" />
+      <button id="sendChat" class="btn">Send</button>
+    </div>
   </div>
+</div>
 
 <script>
-/* ========================================================
-   EduVerse SPA Script — polished + synced + theme support
-   ======================================================== */
+/* Lightweight SPA behaviour (single-file). This is a polished replacement index.html.
+   Key features implemented per brief:
+   - Two-row nav, active highlight
+   - Login hidden after sign-in
+   - Education vs Novels separation
+   - Chat panel sizing improved
+   - AI Tutor page placeholder
+   - After saving profile -> redirect Home
+   - Book covers (copyright-free placeholder pics)
+   - Theme toggle (kept intact)
+*/
 
-(() => {
-  // --- LocalStorage keys
-  const LS_USERS = 'ev_users_v1';
-  const LS_SESS  = 'ev_session_v1';
-  const LS_BOOKS = 'ev_books_v1';
-  const LS_QA    = 'ev_qa_v1';
-  const LS_CHATS = 'ev_chats_v1';
-  const LS_THEME = 'ev_theme_v1';
+// LocalStorage keys
+const LS_USERS = 'ev_users_v2';
+const LS_SESS = 'ev_session_v2';
+const LS_BOOKS = 'ev_books_v2';
+const LS_QA = 'ev_qa_v2';
+const LS_CHATS = 'ev_chats_v2';
 
-  // DOM
-  const app = document.getElementById('app');
-  const page = document.getElementById('page');
-  const globalSearch = document.getElementById('globalSearch');
-  const themeToggle = document.getElementById('themeToggle');
-  const openChatBtn = document.getElementById('openChatBtn');
-  const chatPanel = document.getElementById('chatPanel');
-  const chatBody = document.getElementById('chatBody');
-  const chatText = document.getElementById('chatText');
-  const sendChat = document.getElementById('sendChat');
-  const closeChat = document.getElementById('closeChat');
-  const rankArea = document.getElementById('rankArea');
-  const sideTabs = document.querySelectorAll('#sideTabs .tab');
-  const friendsList = document.getElementById('friendsList');
+const page = document.getElementById('page');
+const secondaryNav = document.getElementById('secondaryNav');
+const navItems = secondaryNav.querySelectorAll('.nav-item');
+const sideNavList = document.getElementById('sideNavList');
+const friendsList = document.getElementById('friendsList');
+const loginTab = document.getElementById('loginTab');
+const userArea = document.getElementById('userArea');
 
-  // state
-  let BOOKS = [];
-  let currentUser = null;
-  let activeChat = null;
+let BOOKS = [];
+let currentUser = null;
+let activeChat = null;
 
-  /* ---------- util ---------- */
-  function read(key, fallback){ try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
-  function write(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
-  function createId(pref='u'){ return pref + Date.now().toString(36) + Math.floor(Math.random()*999).toString(36); }
-  function escapeHtml(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-  function initials(name){ return (name||'').split(' ').map(x=>x[0]||'').slice(0,2).join('').toUpperCase(); }
-  function pickColor(seed){ const palette=['#a0632a','#8b5a2b','#9c6a3c','#7a4b2a','#b0783a','#8f5b3b']; let h=0; for(let i=0;i<seed.length;i++) h=(h<<5)-h+seed.charCodeAt(i); return palette[Math.abs(h)%palette.length]; }
+function read(key, fallback){ try{ const v = localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){return fallback;} }
+function write(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
 
-  /* ---------- users/books storage ---------- */
-  function loadUsers(){ return read(LS_USERS, []) }
-  function saveUsers(u){ write(LS_USERS, u); }
-  function findUserByUsername(name){ if(!name) return null; const low = name.trim().toLowerCase(); return loadUsers().find(u=>u.usernameLower===low); }
-  function findUserById(id){ return loadUsers().find(u=>u.id===id); }
-  function setSession(id){ write(LS_SESS, { userId: id }); }
-  function getSession(){ return read(LS_SESS, null); }
-  function clearSession(){ localStorage.removeItem(LS_SESS); currentUser = null; renderRank(); }
+function loadUsers(){ return read(LS_USERS, []); }
+function saveUsers(u){ write(LS_USERS, u); }
+function createId(pref='u'){ return pref + Date.now().toString(36) + Math.floor(Math.random()*999).toString(36); }
+function findUserByUsername(name){ if(!name) return null; const low = name.trim().toLowerCase(); return loadUsers().find(u=>u.usernameLower===low); }
+function findUserById(id){ return loadUsers().find(u=>u.id===id); }
 
-  /* ---------- Ranks / XP ---------- */
-  const RANKS = [{min:0,name:'New Learner',emoji:'📘'},{min:51,name:'Thinker',emoji:'💡'},{min:151,name:'Helper',emoji:'🤝'},{min:301,name:'Master',emoji:'🏆'},{min:601,name:'Genius',emoji:'🧠'}];
-  function xpToRank(xp=0){ for(let i=RANKS.length-1;i>=0;i--) if(xp>=RANKS[i].min) return RANKS[i]; return RANKS[0]; }
-  function nextThreshold(xp){ for(let i=0;i<RANKS.length;i++) if(xp < RANKS[i].min) return RANKS[i].min; return RANKS[RANKS.length-1].min; }
+function setSession(id){ write(LS_SESS, {userId:id}); }
+function clearSession(){ localStorage.removeItem(LS_SESS); currentUser=null; renderUserArea(); }
+function getSession(){ return read(LS_SESS, null); }
 
-  function awardXP(userId, amt){
-    const users = loadUsers(); const idx = users.findIndex(u=>u.id===userId); if(idx===-1) return;
-    users[idx].xp = Math.max(0, (users[idx].xp||0) + amt); users[idx].lastActive = Date.now(); saveUsers(users);
-    if(currentUser && currentUser.id===userId){ currentUser = users[idx]; renderRank(); notify('+'+amt+' XP'); }
-  }
+// Navigation helpers
+function setActiveNav(pageName){ navItems.forEach(n=> n.classList.toggle('active', n.dataset.page===pageName)); const sideTabs = sideNavList.querySelectorAll('.tab'); sideTabs.forEach(t=> t.classList.toggle('active', t.dataset.page===pageName)); }
 
-  function applyDecayAndVisit(user){
-    const last = user.lastActive || Date.now(); const now = Date.now();
-    const days = Math.floor((now - last) / (24*60*60*1000));
-    let xp = user.xp || 0;
-    if(days>0){
-      const decay = 25 * days;
-      xp = Math.max(0, xp - decay);
-      notify('You lost ' + decay + ' XP for inactivity');
-    }
-    xp += 5; // daily visit bonus
-    user.xp = xp; user.lastActive = now;
-    const users = loadUsers(); const idx = users.findIndex(u=>u.id===user.id);
-    if(idx>-1) users[idx] = user; else users.push(user);
-    saveUsers(users); currentUser = user;
-  }
+secondaryNav.addEventListener('click', (e)=>{ if(e.target.matches('.nav-item')) showPage(e.target.dataset.page); });
+sideNavList.addEventListener('click', (e)=>{ if(e.target.matches('.tab')) showPage(e.target.dataset.page); });
 
-  /* ---------- UI helpers ---------- */
-  function notify(msg, opts={}) {
-    const t = document.createElement('div');
-    t.textContent = msg;
-    t.style.position='fixed';
-    t.style.bottom='18px';
-    t.style.left='50%';
-    t.style.transform='translateX(-50%)';
-    t.style.background = 'linear-gradient(90deg,var(--gold-2),var(--gold))';
-    t.style.color='black';
-    t.style.padding='10px 14px';
-    t.style.borderRadius='999px';
-    t.style.boxShadow='0 8px 24px var(--shadow)';
-    t.style.zIndex = 2000;
-    document.body.appendChild(t);
-    setTimeout(()=> t.style.opacity='0', 2200);
-    setTimeout(()=> t.remove(), 2600);
-  }
+function showPage(pageName){ setActiveNav(pageName);
+  if(pageName==='login') return renderLogin();
+  if(pageName==='profile') return renderProfile();
+  if(pageName==='home') return renderHome();
+  if(pageName==='education') return renderEducation();
+  if(pageName==='novels') return renderNovels();
+  if(pageName==='languages') return renderLanguages();
+  if(pageName==='ai') return renderAITutor();
+  if(pageName==='qa') return renderQA();
+  if(pageName==='community') return renderCommunity();
+  renderHome();
+}
 
-  /* ---------- rendering ---------- */
-  function renderRank(){
-    rankArea.innerHTML = '';
-    if(currentUser){
-      const r = xpToRank(currentUser.xp||0);
-      rankArea.innerHTML = `<strong style="color:var(--gold-2)">${escapeHtml(currentUser.username)}</strong> • <span class="small" style="background:#fff4e6;padding:6px 10px;border-radius:999px;color:var(--gold-2);font-weight:700">${r.emoji} ${r.name}</span> • XP ${currentUser.xp||0}`;
-    } else {
-      const b = document.createElement('button'); b.className='btn ghost'; b.textContent='Login'; b.onclick=()=> showPage('login'); rankArea.appendChild(b);
-    }
-    loadFriendsList();
-  }
-
-  function loadFriendsList(){
-    friendsList.innerHTML = '';
-    if(!currentUser){ friendsList.innerHTML='<div class="small">Login to see friends</div>'; return; }
-    const friends = currentUser.friends||[]; if(friends.length===0){ friendsList.innerHTML='<div class="small">No friends yet</div>'; return; }
-    friends.forEach(id=>{
-      const u = findUserById(id); if(!u) return;
-      const d = document.createElement('div'); d.className='small';
-      d.innerHTML = `${escapeHtml(u.username)} <button class="btn ghost" style="margin-left:8px" onclick="startChat('${u.id}')">Chat</button>`;
-      friendsList.appendChild(d);
-    });
-  }
-
-  /* ---------- pages ---------- */
-  function showPage(pageName){
-    sideTabs.forEach(t=>t.classList.remove('active'));
-    const sel = document.querySelector(`#sideTabs .tab[data-page="${pageName}"]`);
-    if(sel) sel.classList.add('active');
-    if(pageName==='login'){ renderLogin(); return; }
-    if(pageName==='profile'){ renderProfile(); return; }
-    if(pageName==='home'){ renderHome(); return; }
-    if(pageName==='books'){ renderBooks(); return; }
-    if(pageName==='novels'){ renderNovels(); return; }
-    if(pageName==='languages'){ renderLanguages(); return; }
-    if(pageName==='qa'){ renderQA(); return; }
-    if(pageName==='community'){ renderCommunity(); return; }
-    renderHome();
-  }
-
-  /* ---------- Login / Register ---------- */
-  function renderLogin(){
-    page.innerHTML = `
-      <h2>Welcome to EduVerse Library</h2>
+/* ---------- Pages ---------- */
+function renderLogin(){
+  page.innerHTML = `
+    <h2>Sign in</h2>
+    <div style="height:8px"></div>
+    <div class="card">
+      <h3>Local Login</h3>
+      <input id="loginUser" placeholder="Username" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04)" />
+      <input id="loginEmail" placeholder="Email (used for password reset)" type="email" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04)" />
       <div style="height:8px"></div>
-      <div class="card">
-        <h3>Login</h3>
-        <input id="loginUser" placeholder="Username" style="width:100%;margin-top:8px" />
-        <input id="loginEmail" placeholder="Email (for password reset)" type="email" style="width:100%;margin-top:8px" />
-        <div style="height:8px"></div>
-        <div style="display:flex;gap:8px">
-          <button id="doLogin" class="btn">Login</button>
-          <button id="toRegister" class="btn ghost">Register</button>
-        </div>
-        <div style="height:10px"></div>
-        <button id="forgotPassBtn" class="btn ghost small">Forgot Password?</button>
-        <div style="height:10px"></div>
-        <div class="small">If you're new click Register. Usernames must be unique.</div>
-      </div>
-    `;
-
-    document.getElementById('doLogin').onclick = ()=>{
-      const uname = document.getElementById('loginUser').value.trim();
-      if(!uname) return alert('Enter username');
-      const user = findUserByUsername(uname);
-      if(!user) return alert('User not found. Please register.');
-      setSession(user.id); applyDecayAndVisit(user); renderRank(); showPage('profile');
-    };
-
-    document.getElementById('toRegister').onclick = ()=> renderRegister();
-
-    document.getElementById('forgotPassBtn').onclick = async ()=>{
-      const email = document.getElementById('loginEmail').value.trim();
-      if(!email) return alert('Please enter your registered email.');
-      if(window._firebase && window.resetPasswordFirebase){
-        const res = await window.resetPasswordFirebase(email);
-        if(res.ok) alert('✅ Password reset link sent to ' + email);
-        else alert('⚠️ Could not send reset email: ' + res.message);
-      } else {
-        alert('Password reset not configured.');
-      }
-    };
-  }
-
-  function renderRegister(){
-    page.innerHTML = `
-      <h2>Create account</h2>
-      <div style="height:8px"></div>
-      <div class="card">
-        <h3>Register</h3>
-        <input id="regUser" placeholder="Choose username (unique)" style="width:100%;margin-top:8px" />
-        <div style="height:8px"></div>
-        <input id="regEmail" placeholder="Enter your email" type="email" required style="width:100%;margin-top:4px" />
-        <div style="height:12px"></div>
-        <textarea id="regBio" placeholder="Short bio (optional)" style="width:100%;min-height:80px"></textarea>
-        <div style="height:12px"></div>
-        <div style="display:flex;gap:8px">
-          <button id="createAccount" class="btn">Create Account</button>
-          <button id="backLogin" class="btn ghost">Back</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('backLogin').onclick = ()=> showPage('login');
-    document.getElementById('createAccount').onclick = ()=>{
-      const uname = document.getElementById('regUser').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
-      const bio = document.getElementById('regBio').value.trim();
-      if(!uname) return alert('Choose a username');
-      if(!email) return alert('Email is required');
-      if(findUserByUsername(uname)) return alert('Username taken — try another');
-      const users = loadUsers();
-      const id = createId('u');
-      const color = pickColor(uname);
-      const newUser = { id, username:uname, usernameLower:uname.toLowerCase(), email, bio, xp:10, lastActive:Date.now(), friends:[], avatarColor:color };
-      users.push(newUser); saveUsers(users);
-      setSession(id); currentUser = newUser; notify('Welcome, ' + uname + '! +10 XP'); renderRank(); showPage('profile');
-    };
-  }
-
-  /* ---------- Profile ---------- */
-  function renderProfile(){
-    const s = getSession();
-    if(!s) { showPage('login'); return; }
-    if(!currentUser){ currentUser = findUserById(s.userId); }
-    if(!currentUser) { showPage('login'); return; }
-
-    page.innerHTML = `
-      <h2>Your Profile</h2><div style="height:8px"></div>
-      <div style="display:flex;gap:12px;align-items:flex-start">
-        <div style="width:240px">
-          <div class="card">
-            <div style="display:flex;gap:12px;align-items:center">
-              <div class="avatar">${escapeHtml(initials(currentUser.username))}</div>
-              <div>
-                <div style="font-weight:700">${escapeHtml(currentUser.username)}</div>
-                <div class="small">${escapeHtml(currentUser.email||'')}</div>
-                <div style="height:8px"></div>
-                <div>${renderRankSmall(currentUser.xp)}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div style="flex:1">
-          <div class="card">
-            <h4>Edit Profile</h4>
-            <input id="editUser" placeholder="Username" style="width:100%;margin-top:8px" value="${escapeHtml(currentUser.username)}" />
-            <div style="height:8px"></div>
-            <textarea id="editBio" placeholder="Bio" style="width:100%;min-height:80px">${escapeHtml(currentUser.bio||'')}</textarea>
-            <div style="height:12px"></div>
-            <div style="display:flex;gap:8px">
-              <button id="saveProfile" class="btn">Save</button>
-              <button id="logoutBtn" class="btn ghost">Logout</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('saveProfile').onclick = ()=>{
-      const newU = document.getElementById('editUser').value.trim();
-      const newBio = document.getElementById('editBio').value.trim();
-      if(!newU) return alert('Username required');
-      if(newU.toLowerCase() !== currentUser.usernameLower && findUserByUsername(newU)) return alert('Username taken');
-      const users = loadUsers(); const idx = users.findIndex(u=>u.id===currentUser.id);
-      users[idx].username = newU; users[idx].usernameLower = newU.toLowerCase(); users[idx].bio = newBio;
-      users[idx].avatarColor = users[idx].avatarColor || pickColor(newU); saveUsers(users);
-      currentUser = users[idx]; setSession(currentUser.id); notify('Profile saved'); renderRank(); renderProfile();
-    };
-
-    document.getElementById('logoutBtn').onclick = async ()=>{
-      if(window.signOutFirebase) await window.signOutFirebase();
-      clearSession();
-      showPage('login');
-      alert('You have been logged out successfully.');
-    };
-  }
-
-  function renderRankSmall(xp){ const r = xpToRank(xp||0); return `<div class="small">XP ${xp||0} • <span style="display:inline-block;padding:6px 10px;border-radius:999px;background:#fff4e6;color:var(--gold-2);font-weight:700">${r.emoji} ${r.name}</span></div>`; }
-
-  /* ---------- Home / Books / Novels / Languages / QA / Community ---------- */
-  function renderHome(){
-    page.innerHTML = `
-      <h2>Home</h2>
-      <div style="display:flex;gap:12px;align-items:center;margin-top:8px">
-        <div style="flex:1" class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div><div style="font-weight:700">Welcome${currentUser?(', '+escapeHtml(currentUser.username)) : ''}</div><div class="small">Start reading, help others, and earn ranks</div></div>
-            <div style="width:280px">
-              <div class="small">Progress</div>
-              <div class="progress" style="margin-top:6px"><i id="progressBar" style="width:0%"></i></div>
-              <div style="height:6px"></div>
-              <div id="progressText" class="small"></div>
-            </div>
-          </div>
-        </div>
-
-        <div style="width:280px" class="card">
-          <div style="font-weight:700">Quick Actions</div>
-          <div style="height:8px"></div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button class="tab" onclick="showPage('books')">Browse Books</button>
-            <button class="tab" onclick="showPage('novels')">Novels & Poems</button>
-            <button class="tab" onclick="showPage('languages')">Learn Languages</button>
-            <button class="tab" onclick="showPage('qa')">Self-Test & Questions</button>
-          </div>
-        </div>
-      </div>
-
-      <div style="height:12px"></div>
-      <div class="card"><h3>Featured Books</h3><div class="book-grid" id="homeBooks"></div></div>
-    `;
-
-    const xp = currentUser ? currentUser.xp : 0; const next = nextThreshold(xp);
-    document.getElementById('progressBar').style.width = Math.min(100, Math.round((xp/next)*100)) + '%';
-    document.getElementById('progressText').textContent = `XP ${xp} • Next ${next} • ${xpToRank(xp).name}`;
-
-    loadBooks().then(()=> {
-      const hb = document.getElementById('homeBooks'); hb.innerHTML='';
-      BOOKS.slice(0,6).forEach(b=> hb.appendChild(renderBookCard(b)));
-    });
-  }
-
-  async function loadBooks(){
-    if(BOOKS.length>0) return;
-    try{
-      const res = await fetch('books.json'); // optional - falls back to localStorage
-      if(res.ok){
-        BOOKS = await res.json();
-        BOOKS.forEach(b=>{ b.type = b.type || (b.license && b.license.toLowerCase().includes('public') ? 'free' : 'paid'); b.category = b.category || 'general'; b.tags = b.tags || []; });
-        write(LS_BOOKS, BOOKS);
-        return;
-      }
-    }catch(e){}
-    BOOKS = read(LS_BOOKS, []);
-  }
-
-  function renderBookCard(b){
-    const wrap = document.createElement('div'); wrap.className='book-card';
-    const lic = b.license || 'Unknown';
-    wrap.innerHTML = `
-      <div style="display:flex;justify-content:space-between">
-        <div>
-          <div class="book-title">${escapeHtml(b.title)}</div>
-          <div class="small">${escapeHtml(b.author||'Unknown')}</div>
-        </div>
-        <div style="text-align:right"><div class="small">${escapeHtml(lic)}</div></div>
-      </div>
-      <div class="meta">${escapeHtml(b.description||'')}</div>
-      <div style="height:10px"></div>
       <div style="display:flex;gap:8px">
-        <button class="btn" onclick="openSource('${escapeForJs(b.source_url)}','${b.id}')">Open Source</button>
-        ${b.preview_url?`<a class="btn ghost" href="${encodeURI(b.preview_url)}" target="_blank" rel="noreferrer">Preview</a>`:''}
-        ${b.type==='paid'?`<button class="btn" onclick="purchasePlaceholder('${b.id}')">Buy</button>`:''}
+        <button id="doLogin" class="btn">Login</button>
+        <button id="toRegister" class="btn ghost">Register</button>
       </div>
-    `;
-    return wrap;
-  }
-
-  function escapeForJs(s){ return (s||'').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
-  window.openSource = function(url, bookId){
-    if(!url) return alert('No source URL provided');
-    window.open(url, '_blank');
-    if(currentUser) { awardXP(currentUser.id,20); notify('+20 XP for reading'); }
-  };
-  window.purchasePlaceholder = function(bookId){ alert('This site does not host copyrighted files. Paid books must be purchased via official stores.'); };
-
- function renderBooks() {
-  loadBooks().then(() => {
-    page.innerHTML = `
-      <h2>📚 Education</h2>
       <div style="height:8px"></div>
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-          <div class="tabs" id="booksTabs">
-            <button class="tab active" data-filter="all">All</button>
-            <button class="tab" data-filter="free">Free</button>
-            <button class="tab" data-filter="paid">Paid</button>
-          </div>
-          <select id="subjectFilter" style="
-            background:var(--card);
-            color:var(--accent);
-            border:1px solid var(--accent);
-            border-radius:8px;
-            padding:6px 10px;
-            font-weight:600;
-          ">
-            <option value="all">All Subjects</option>
-            <option value="science">Science</option>
-            <option value="math">Math</option>
-            <option value="history">History</option>
-            <option value="technology">Technology</option>
-            <option value="arts">Arts</option>
-            <option value="language">Language</option>
-          </select>
-        </div>
-        <div style="height:12px"></div>
-        <div class="book-grid" id="booksArea"></div>
-      </div>
-    `;
-
-    const tabs = document.querySelectorAll("#booksTabs .tab");
-    const subjectSelect = document.getElementById("subjectFilter");
-
-    tabs.forEach((t) =>
-      t.addEventListener("click", () => {
-        tabs.forEach((x) => x.classList.remove("active"));
-        t.classList.add("active");
-        renderBooksFilter(t.dataset.filter, subjectSelect.value);
-      })
-    );
-
-    subjectSelect.addEventListener("change", () => {
-      const activeTab = document.querySelector("#booksTabs .tab.active");
-      renderBooksFilter(activeTab.dataset.filter, subjectSelect.value);
-    });
-
-    renderBooksFilter("all", "all");
-  });
-}
-
-function renderBooksFilter(filter, subject) {
-  const node = document.getElementById("booksArea");
-  node.innerHTML = "";
-
-  const list = BOOKS.filter((b) => {
-    const typeMatch = filter === "all" ? true : b.type === filter;
-    const subjMatch =
-      subject === "all" ||
-      (b.category && b.category.toLowerCase().includes(subject)) ||
-      (b.tags && b.tags.join(" ").toLowerCase().includes(subject));
-    // Exclude novels and poems from Education
-    const notNovel =
-      !(b.tags || []).includes("novel") &&
-      !/novel|poem|poetry/i.test(b.title);
-    return typeMatch && subjMatch && notNovel;
-  });
-
-  if (list.length === 0) {
-    node.innerHTML =
-      '<div class="small" style="text-align:center">No books found for this filter.</div>';
-    return;
-  }
-
-  list.forEach((b) => node.appendChild(renderBookCard(b)));
-}
-
-// Updated book card layout with placeholder cover
-function renderBookCard(b) {
-  const wrap = document.createElement("div");
-  wrap.className = "book-card";
-  wrap.style.display = "flex";
-  wrap.style.alignItems = "flex-start";
-  wrap.style.gap = "10px";
-
-  const cover = document.createElement("img");
-  cover.src = "https://placehold.co/120x160?text=Book";
-  cover.alt = b.title;
-  cover.style.width = "100px";
-  cover.style.height = "140px";
-  cover.style.borderRadius = "10px";
-  cover.style.objectFit = "cover";
-  cover.style.border = "1px solid var(--accent)";
-  wrap.appendChild(cover);
-
-  const details = document.createElement("div");
-  details.style.flex = "1";
-  details.innerHTML = `
-    <div style="display:flex;justify-content:space-between">
-      <div>
-        <div class="book-title">${escapeHtml(b.title)}</div>
-        <div class="small">${escapeHtml(b.author || "Unknown")}</div>
-      </div>
-      <div style="text-align:right">
-        <div class="small">${escapeHtml(b.license || "Unknown")}</div>
-      </div>
-    </div>
-    <div class="meta">${escapeHtml(b.description || "")}</div>
-    <div style="height:10px"></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn" onclick="openSource('${escapeForJs(
-        b.source_url
-      )}','${b.id}')">Open Source</button>
-      ${
-        b.preview_url
-          ? `<a class="btn ghost" href="${encodeURI(
-              b.preview_url
-            )}" target="_blank">Preview</a>`
-          : ""
-      }
-      ${
-        b.type === "paid"
-          ? `<button class="btn" onclick="purchasePlaceholder('${b.id}')">Buy</button>`
-          : ""
-      }
+      <button id="forgotPassBtn" class="btn ghost small">Forgot Password?</button>
     </div>
   `;
-  wrap.appendChild(details);
-  return wrap;
+
+  document.getElementById('doLogin').onclick = ()=>{
+    const uname = document.getElementById('loginUser').value.trim();
+    if(!uname) return alert('Enter username');
+    const user = findUserByUsername(uname);
+    if(!user) return alert('User not found. Please register.');
+    setSession(user.id); currentUser = user; renderUserArea(); showPage('home');
+  };
+
+  document.getElementById('toRegister').onclick = ()=> renderRegister();
+  document.getElementById('forgotPassBtn').onclick = ()=>{
+    const email = document.getElementById('loginEmail').value.trim();
+    if(!email) return alert('Enter email for reset.');
+    window.resetPasswordFirebase(email);
+  };
 }
 
+function renderRegister(){
+  page.innerHTML = `
+    <h2>Create account</h2>
+    <div style="height:8px"></div>
+    <div class="card">
+      <h3>Register</h3>
+      <input id="regUser" placeholder="Choose username (unique)" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04)" />
+      <input id="regEmail" placeholder="Enter your email" type="email" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04)" />
+      <textarea id="regBio" placeholder="Short bio (optional)" style="width:100%;min-height:80px;margin-top:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04)"></textarea>
+      <div style="height:12px"></div>
+      <div style="display:flex;gap:8px">
+        <button id="createAccount" class="btn">Create Account</button>
+        <button id="backLogin" class="btn ghost">Back</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('backLogin').onclick = ()=> showPage('login');
+  document.getElementById('createAccount').onclick = ()=>{
+    const uname = document.getElementById('regUser').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const bio = document.getElementById('regBio').value.trim();
+    if(!uname) return alert('Choose a username');
+    if(!email) return alert('Email is required');
+    if(findUserByUsername(uname)) return alert('Username taken — try another');
+    const users = loadUsers(); const id = createId('u');
+    const color = pickColor(uname);
+    const newUser = {id, username:uname, usernameLower:uname.toLowerCase(), email, bio, lastActive:Date.now(), friends:[], avatarColor:color};
+    users.push(newUser); saveUsers(users);
+    setSession(id); currentUser=newUser; renderUserArea(); showPage('home');
+  };
+}
 
-  function renderBooksFilter(filter){
-    const node = document.getElementById('booksArea'); node.innerHTML='';
-    const list = BOOKS.filter(b=> filter==='all'?true:b.type===filter);
-    list.forEach(b=> node.appendChild(renderBookCard(b)));
-  }
+function renderProfile(){
+  const s = getSession(); if(!s || !s.userId) { showPage('login'); return; }
+  if(!currentUser) currentUser = findUserById(s.userId);
+  if(!currentUser){ showPage('login'); return; }
+  page.innerHTML = `
+    <h2>Your Profile</h2>
+    <div style="height:8px"></div>
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="width:240px">
+        <div class="card">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="avatar" style="width:72px;height:72px;border-radius:12px;background:${currentUser.avatarColor};display:flex;align-items:center;justify-content:center;color:white;font-weight:700">${initials(currentUser.username)}</div>
+            <div>
+              <div style="font-weight:700">${escapeHtml(currentUser.username)}</div>
+              <div class="small">${escapeHtml(currentUser.email||'')}</div>
+              <div style="height:8px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1">
+        <div class="card">
+          <h4>Edit Profile</h4>
+          <input id="editUser" placeholder="Username" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04)" value="${escapeHtml(currentUser.username)}" />
+          <textarea id="editBio" placeholder="Bio" style="width:100%;min-height:80px;margin-top:8px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04)">${escapeHtml(currentUser.bio||'')}</textarea>
+          <div style="height:12px"></div>
+          <div style="display:flex;gap:8px"><button id="saveProfile" class="btn">Save</button><button id="logoutBtn" class="btn ghost">Logout</button></div>
+        </div>
+      </div>
+    </div>
+  `;
 
-  function renderNovels(){
-    loadBooks().then(()=>{
-      page.innerHTML = `<h2>Novels & Poems</h2><div class="card"><div id="novelArea" class="book-grid"></div></div>`;
-      const node = document.getElementById('novelArea');
-      const list = BOOKS.filter(b=> (b.tags||[]).includes('novel') || (b.category==='novel') || (/poem|poetry/i.test(b.title)));
-      list.forEach(b=> node.appendChild(renderBookCard(b)));
-    });
-  }
-
-  function renderLanguages(){
-    page.innerHTML = `<h2>Learn Languages</h2><div class="card"><p class="small">Curated open resources for language learning (includes Sign Language).</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px" id="langLinks"></div></div>`;
-    const list = [{name:'English — Project Gutenberg',url:'https://www.gutenberg.org'},{name:'Spanish — OpenLibrary',url:'https://openlibrary.org'},{name:'French — Internet Archive',url:'https://archive.org'},{name:'Sign Language — HandSpeak',url:'https://www.handspeak.com'}];
-    const n = document.getElementById('langLinks'); n.innerHTML='';
-    list.forEach(l=>{
-      const a = document.createElement('a'); a.className='tab'; a.href = l.url; a.target='_blank'; a.rel='noreferrer'; a.textContent = l.name;
-      n.appendChild(a);
-    });
-  }
-
-  /* Q&A */
-  function readQA(){ return read(LS_QA, { questions: [] }); }
-  function saveQA(q){ write(LS_QA, q); }
-  function renderQA(){
-    const data = readQA();
-    page.innerHTML = `<h2>Self-Test & Questions</h2><div style="height:8px"></div><div class="card"><h4>Ask a question</h4><input id="qTitle" placeholder="Short title" style="width:100%;margin-top:8px"/><div style="height:8px"></div><textarea id="qBody" placeholder="Describe your doubt" style="width:100%;min-height:80px"></textarea><div style="height:10px"></div><button id="postQBtn" class="btn">Post Question</button></div><div style="height:12px"></div><div id="questionsList"></div>`;
-    document.getElementById('postQBtn').onclick = ()=>{
-      if(!currentUser){ if(confirm('Login to post?')) showPage('login'); return; }
-      const t = document.getElementById('qTitle').value.trim();
-      const b = document.getElementById('qBody').value.trim();
-      if(!t) return alert('Title required');
-      const qa = readQA();
-      qa.questions.unshift({ id:createId('q'), title:t, body:b, authorId:currentUser.id, authorName:currentUser.username, createdAt:Date.now(), answers:[] });
-      saveQA(qa); document.getElementById('qTitle').value=''; document.getElementById('qBody').value=''; notify('Question posted'); renderQA();
-    };
-    renderQuestions();
-  }
-  function renderQuestions(){
-    const qa = readQA();
-    const node = document.getElementById('questionsList'); node.innerHTML='';
-    qa.questions.forEach(q=>{
-      const div = document.createElement('div'); div.className='card'; div.style.marginBottom='8px';
-      div.innerHTML = `<strong>${escapeHtml(q.title)}</strong><div class="small">by ${escapeHtml(q.authorName)} • ${new Date(q.createdAt).toLocaleString()}</div><div style="height:8px"></div><div class="small">${escapeHtml(q.body)}</div><div style="height:8px"></div><div><button class="btn" onclick="openQuestion('${q.id}')">Open & Answer</button></div>`;
-      node.appendChild(div);
-    });
-  }
-  window.openQuestion = function(id){
-    const qa = readQA(); const q = qa.questions.find(x=>x.id===id); if(!q) return alert('Not found');
-    page.innerHTML = `<h3>${escapeHtml(q.title)}</h3><div class="small">by ${escapeHtml(q.authorName)}</div><div style="height:8px"></div><div class="card">${escapeHtml(q.body)}</div><div style="height:12px"></div><div class="card"><h4>Answers</h4><div id="answerList"></div><div style="height:8px"></div><textarea id="answerText" placeholder="Write your answer..." style="width:100%;min-height:80px"></textarea><div style="height:8px"></div><button id="postAnswerBtn" class="btn">Post Answer (+15 XP)</button></div>`;
-    const node = document.getElementById('answerList'); node.innerHTML='';
-    (q.answers||[]).forEach(a=>{
-      const block = document.createElement('div'); block.className='card'; block.style.marginBottom='8px';
-      block.innerHTML = `<strong>${escapeHtml(a.authorName)}</strong> <div class="small">${new Date(a.createdAt).toLocaleString()}</div><div style="height:8px"></div><div class="small">${escapeHtml(a.text)}</div>`;
-      node.appendChild(block);
-    });
-    document.getElementById('postAnswerBtn').onclick = ()=>{
-      if(!currentUser){ if(confirm('Login to answer?')) showPage('login'); return; }
-      const txt = document.getElementById('answerText').value.trim(); if(!txt) return alert('Write an answer');
-      const qa2 = readQA(); const q2 = qa2.questions.find(x=>x.id===id); q2.answers = q2.answers||[]; q2.answers.push({ id:createId('a'), text:txt, authorId:currentUser.id, authorName:currentUser.username, createdAt:Date.now() });
-      saveQA(qa2); awardXP(currentUser.id,15); notify('+15 XP for answering'); window.openQuestion(id);
-    };
+  document.getElementById('saveProfile').onclick = ()=>{
+    const newU = document.getElementById('editUser').value.trim();
+    const newBio = document.getElementById('editBio').value.trim();
+    if(!newU) return alert('Username required');
+    if(newU.toLowerCase() !== currentUser.usernameLower && findUserByUsername(newU)) return alert('Username taken');
+    const users = loadUsers(); const idx = users.findIndex(u=>u.id===currentUser.id);
+    users[idx].username = newU; users[idx].usernameLower = newU.toLowerCase(); users[idx].bio = newBio; users[idx].avatarColor = users[idx].avatarColor || pickColor(newU); saveUsers(users);
+    currentUser = users[idx]; setSession(currentUser.id);
+    // After saving, go directly to Home as requested
+    renderUserArea(); showPage('home');
   };
 
-  /* Community */
-  function renderCommunity(){
-    const users = loadUsers().sort((a,b)=> (b.xp||0)-(a.xp||0));
-    page.innerHTML = `<h2>Community</h2><div style="height:8px"></div><div id="communityList"></div>`;
-    const node = document.getElementById('communityList'); node.innerHTML='';
-    users.forEach(u=>{
-      const card = document.createElement('div'); card.className='card'; card.style.marginBottom='8px';
-      card.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:12px;align-items:center"><div class="avatar" style="background:${u.avatarColor}">${escapeHtml(initials(u.username))}</div><div><div style="font-weight:700">${escapeHtml(u.username)}</div><div class="small">${escapeHtml(u.bio||'')}</div></div></div><div style="text-align:right"><div>${renderRankSmall(u.xp)}</div><div style="height:8px"></div><div><button class="btn" onclick="startChat('${u.id}')">Message</button> <button class="btn ghost" onclick="addFriend('${u.id}')">Add Friend</button></div></div></div>`;
-      node.appendChild(card);
+  document.getElementById('logoutBtn').onclick = ()=>{
+    // clear local session and call firebase signOut helper
+    window.signOutFirebase().finally(()=>{
+      clearSession(); showPage('login'); alert('You have been logged out successfully.');
     });
-  }
-
-  /* ---------- Friends ---------- */
-  window.addFriend = function(targetId){
-    if(!currentUser){ if(confirm('Login to add friends?')) showPage('login'); return; }
-    if(currentUser.id===targetId) return alert('Cannot add yourself');
-    const users = loadUsers(); const meIdx = users.findIndex(u=>u.id===currentUser.id);
-    users[meIdx].friends = users[meIdx].friends||[]; if(users[meIdx].friends.includes(targetId)) return alert('Already friends');
-    users[meIdx].friends.push(targetId); saveUsers(users); currentUser = users[meIdx]; notify('Friend added'); loadFriendsList();
   };
+}
 
-  /* ---------- Chat (local only) ---------- */
-  function chatRoomId(a,b){ return [a,b].sort().join('_'); }
-  window.startChat = function(otherId){
-    if(!currentUser){ if(confirm('Login to chat?')) showPage('login'); return; }
-    const other = findUserById(otherId); if(!other) return alert('User not found');
-    activeChat = { peerId: otherId, peerName: other.username };
-    document.getElementById('chatWith').textContent = 'Chat — ' + other.username;
-    chatPanel.classList.add('open'); chatPanel.setAttribute('aria-hidden','false');
-    loadChat(activeChat);
-  };
+function renderHome(){
+  page.innerHTML = `
+    <h2>Home</h2>
+    <div style="height:12px"></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:700">Welcome ${currentUser?escapeHtml(currentUser.username):'Guest'}</div>
+          <div class="small">Start reading, help others, and explore</div>
+        </div>
+        <div style="width:280px;text-align:right"><div class="small">Featured</div></div>
+      </div>
+    </div>
 
-  function loadChat(room){
-    const all = read(LS_CHATS, {});
-    const msgs = all[chatRoomId(room.peerId, currentUser.id)] || [];
-    chatBody.innerHTML = '';
-    msgs.forEach(m=>{
-      const d = document.createElement('div'); d.className = 'msg ' + (m.from===currentUser.id ? 'me' : 'them');
-      d.innerHTML = `<div style="font-size:13px">${escapeHtml(m.text)}</div><div class="small" style="margin-top:6px">${new Date(m.ts).toLocaleString()}</div>`;
-      chatBody.appendChild(d);
-    });
-    chatBody.scrollTop = chatBody.scrollHeight;
-  }
+    <div style="height:12px"></div>
+    <div class="card"><h3>Featured Books</h3><div class="book-grid" id="homeBooks"></div></div>
+  `;
+  loadBooks().then(()=>{ const hb = document.getElementById('homeBooks'); hb.innerHTML=''; BOOKS.slice(0,6).forEach(b=> hb.appendChild(renderBookCard(b))); });
+}
 
-  function sendMessage(){
-    const text = chatText.value.trim(); if(!text) return;
-    const all = read(LS_CHATS, {}); const id = chatRoomId(activeChat.peerId, currentUser.id);
-    all[id] = all[id] || []; all[id].push({ from: currentUser.id, to: activeChat.peerId, text, ts: Date.now() });
-    write(LS_CHATS, all); chatText.value=''; loadChat(activeChat);
-  }
-  sendChat.onclick = ()=> sendMessage();
-  chatText.addEventListener('keydown', (e)=> { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
-  closeChat.onclick = ()=> { chatPanel.classList.remove('open'); chatPanel.setAttribute('aria-hidden','true'); activeChat = null; };
+function renderEducation(){
+  page.innerHTML = `<h2>Education</h2><div style="height:12px"></div><div class="card"><div class="tabs"><button class="tab active" data-filter="all">All</button><button class="tab" data-filter="science">Science</button><button class="tab" data-filter="math">Math</button><button class="tab" data-filter="history">History</button></div><div style="height:12px"></div><div class="book-grid" id="educationArea"></div></div>`;
+  loadBooks().then(()=>{ renderEducationFilter('all'); const tabs = document.querySelectorAll('.card .tab'); tabs.forEach(t=> t.onclick=()=>{ tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active'); renderEducationFilter(t.dataset.filter); }); });
+}
+function renderEducationFilter(filter){ const node=document.getElementById('educationArea'); node.innerHTML=''; const list = BOOKS.filter(b=> {
+  if(filter==='all') return b.type==='education';
+  return b.type==='education' && (b.category===filter || (b.tags||[]).includes(filter));
+}); list.forEach(b=> node.appendChild(renderBookCard(b))); }
 
-  openChatBtn.onclick = ()=> {
-    if(!currentUser){ if(confirm('Login to chat?')) showPage('login'); return; }
-    const friends = currentUser.friends||[];
-    if(friends.length>0) startChat(friends[0]); else alert('You have no friends yet. Use Community to add friends.');
-  };
+function renderNovels(){ page.innerHTML = `<h2>Novels & Poems</h2><div style="height:12px"></div><div class="card"><div id="novelArea" class="book-grid"></div></div>`; loadBooks().then(()=>{ const node=document.getElementById('novelArea'); node.innerHTML=''; const list = BOOKS.filter(b=> b.type==='novel'); list.forEach(b=> node.appendChild(renderBookCard(b))); }); }
 
-  /* ---------- Books JSON fallback: minimal demo ---------- */
-  // If books.json doesn't exist, we'll seed a tiny demo so UI isn't empty
-  async function ensureBooksSeed(){
-    await loadBooks();
-    if(BOOKS.length===0){
-      BOOKS = [
-        { id: 'b1', title: 'Introduction to Algorithms', author: 'Cormen et al.', description: 'Classic algorithms textbook.', license: 'Public Domain', source_url: 'https://example.com/algos', preview_url:'', type:'free', tags:['novel'] },
-        { id: 'b2', title: 'Modern JavaScript', author: 'A. Dev', description: 'Practical JS guide.', license: 'Paid', source_url: 'https://example.com/js', preview_url:'', type:'paid' }
-      ];
-      write(LS_BOOKS, BOOKS);
-    }
-  }
+function renderLanguages(){ page.innerHTML = `<h2>Languages</h2><div class="card"><p class="small">Curated open resources for language learning.</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><a class="tab" href="https://www.gutenberg.org" target="_blank">Project Gutenberg</a><a class="tab" href="https://openlibrary.org" target="_blank">OpenLibrary</a><a class="tab" href="https://archive.org" target="_blank">Internet Archive</a></div></div>`; }
 
-  /* ---------- Search ---------- */
-  globalSearch.oninput = async ()=>{
-    const q = globalSearch.value.trim().toLowerCase();
-    if(!q){ showPage('home'); return; }
-    await loadBooks();
-    const matches = BOOKS.filter(b=> (b.title+' '+(b.author||'')+' '+(b.description||'')).toLowerCase().includes(q));
-    page.innerHTML = `<h2>Search results for "${escapeHtml(globalSearch.value)}"</h2><div class="book-grid" id="searchResults"></div>`;
-    const node = document.getElementById('searchResults'); node.innerHTML='';
-    matches.forEach(b=> node.appendChild(renderBookCard(b)));
-  };
+function renderAITutor(){ page.innerHTML = `<h2>AI Tutor</h2><div style="height:12px"></div><div class="card"><h3 style="font-weight:800">Coming soon</h3><div class="small">I'll add a custom AI tutor here soon.</div></div>`; }
 
-  /* ---------- Theme toggle (works + persists) ---------- */
-  function setTheme(t){
-    const theme = t === 'dark' ? 'dark' : 'light';
-    app.setAttribute('data-theme', theme);
-    document.body.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
-    localStorage.setItem(LS_THEME, theme);
-    themeToggle.classList.toggle('ghost', theme === 'dark' ? false : true);
-    themeToggle.textContent = theme === 'dark' ? 'Light' : 'Dark';
-    themeToggle.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
-  }
-  function initTheme(){
-    const saved = localStorage.getItem(LS_THEME);
-    if(saved) setTheme(saved);
-    else {
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? 'dark' : 'light');
-    }
-  }
-  themeToggle.onclick = ()=> {
-    const current = localStorage.getItem(LS_THEME) || (document.body.getAttribute('data-theme')==='dark' ? 'dark' : 'light');
-    setTheme(current==='dark' ? 'light' : 'dark');
-  };
+function renderQA(){ page.innerHTML = `<h2>Self-Test & Questions</h2><div style="height:8px"></div><div class="card"><h4>Ask a question</h4><input id="qTitle" placeholder="Short title" style="width:100%;margin-top:8px"/><div style="height:8px"></div><textarea id="qBody" placeholder="Describe your doubt" style="width:100%;min-height:80px"></textarea><div style="height:10px"></div><button id="postQBtn" class="btn">Post Question</button></div><div style="height:12px"></div><div id="questionsList"></div>`;
+  renderQuestions();
+  document.getElementById('postQBtn').onclick = ()=>{ if(!currentUser){ if(confirm('Login to post')) showPage('login'); return; } const t=document.getElementById('qTitle').value.trim(); const b=document.getElementById('qBody').value.trim(); if(!t) return alert('Title required'); const qa=read(LS_QA,{questions:[]}); qa.questions.unshift({id:createId('q'),title:t,body:b,authorId:currentUser.id,authorName:currentUser.username,createdAt:Date.now(),answers:[]}); write(LS_QA,qa); document.getElementById('qTitle').value=''; document.getElementById('qBody').value=''; renderQA(); };
+}
+function renderQuestions(){ const qa=read(LS_QA,{questions:[]}); const node=document.getElementById('questionsList'); node.innerHTML=''; qa.questions.forEach(q=>{ const div=document.createElement('div'); div.className='card'; div.style.marginBottom='8px'; div.innerHTML=`<strong>${escapeHtml(q.title)}</strong><div class="small">by ${escapeHtml(q.authorName)} • ${new Date(q.createdAt).toLocaleString()}</div><div style="height:8px"></div><div class="small">${escapeHtml(q.body)}</div><div style="height:8px"></div><div><button class="btn" onclick="openQuestion('${q.id}')">Open & Answer</button></div>`; node.appendChild(div); }); }
+function openQuestion(id){ const qa=read(LS_QA,{questions:[]}); const q=qa.questions.find(x=>x.id===id); if(!q) return alert('Not found'); page.innerHTML = `<h3>${escapeHtml(q.title)}</h3><div class="small">by ${escapeHtml(q.authorName)}</div><div style="height:8px"></div><div class="card">${escapeHtml(q.body)}</div><div style="height:12px"></div><div class="card"><h4>Answers</h4><div id="answerList"></div><div style="height:8px"></div><textarea id="answerText" placeholder="Write your answer..." style="width:100%;min-height:80px"></textarea><div style="height:8px"></div><button id="postAnswerBtn" class="btn">Post Answer</button></div>`; const node=document.getElementById('answerList'); node.innerHTML=''; (q.answers||[]).forEach(a=>{ const block=document.createElement('div'); block.className='card'; block.style.marginBottom='8px'; block.innerHTML=`<strong>${escapeHtml(a.authorName)}</strong> <div class="small">${new Date(a.createdAt).toLocaleString()}</div><div style="height:8px"></div><div class="small">${escapeHtml(a.text)}</div>`; node.appendChild(block); }); document.getElementById('postAnswerBtn').onclick = ()=>{ if(!currentUser){ if(confirm('Login to answer')) showPage('login'); return; } const txt=document.getElementById('answerText').value.trim(); if(!txt) return alert('Write an answer'); const qa2=read(LS_QA,{questions:[]}); const q2=qa2.questions.find(x=>x.id===id); q2.answers=q2.answers||[]; q2.answers.push({id:createId('a'),text:txt,authorId:currentUser.id,authorName:currentUser.username,createdAt:Date.now()}); write(LS_QA,qa2); openQuestion(id); } }
 
-  /* ---------- Side tabs ---------- */
-  sideTabs.forEach(t=> t.addEventListener('click', ()=> showPage(t.dataset.page)));
+function renderCommunity(){ const users = loadUsers().sort((a,b)=> (a.username> b.username?1:-1)); page.innerHTML = `<h2>Community</h2><div style="height:8px"></div><div id="communityList"></div>`; const node=document.getElementById('communityList'); users.forEach(u=>{ const card=document.createElement('div'); card.className='card'; card.style.marginBottom='8px'; card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:12px;align-items:center"><div class="avatar" style="background:${u.avatarColor};width:48px;height:48px;border-radius:8px;color:white;display:flex;align-items:center;justify-content:center;font-weight:700">${initials(u.username)}</div><div><div style="font-weight:700">${escapeHtml(u.username)}</div><div class="small">${escapeHtml(u.bio||'')}</div></div></div><div style="text-align:right"><div style="height:8px"></div><div><button class="btn" onclick="startChat('${u.id}')">Message</button> <button class="btn ghost" onclick="addFriend('${u.id}')">Add Friend</button></div></div></div>`; node.appendChild(card); }); }
 
-  /* ---------- init ---------- */
-  async function init(){
-    initTheme();
-    await ensureBooksSeed();
+/* ---------- Books ---------- */
+async function loadBooks(){ if(BOOKS.length>0) return; try{ // attempt to load external file first
+    const res = await fetch('books.json');
+    if(res.ok){ BOOKS = await res.json(); }
+  }catch(e){ /* ignore */ }
+  // fallback sample data (covers use picsum.photos as safe placeholders)
+  if(!BOOKS || BOOKS.length===0){ BOOKS = [
+    {id:'b1',title:'Intro to Physics',author:'Various',type:'education',category:'science',tags:['science'],description:'Open resource on basic physics',license:'Public Domain',source_url:'https://archive.org',cover:`https://picsum.photos/seed/physics/200/300`},
+    {id:'b2',title:'Algebra Essentials',author:'Math Collective',type:'education',category:'math',tags:['math'],description:'Foundational algebra course',license:'Public Domain',source_url:'https://openlibrary.org',cover:`https://picsum.photos/seed/algebra/200/300`},
+    {id:'b3',title:'Selected Poems',author:'Classic Poets',type:'novel',category:'novel',tags:['novel'],description:'A small collection of public-domain poems',license:'Public Domain',source_url:'https://www.gutenberg.org',cover:`https://picsum.photos/seed/poems/200/300`},
+    {id:'b4',title:'World History Overview',author:'History Guild',type:'education',category:'history',tags:['history'],description:'Survey course notes and readings',license:'Public Domain',source_url:'https://archive.org',cover:`https://picsum.photos/seed/history/200/300`}
+  ]; write(LS_BOOKS, BOOKS); }
+}
 
-    // sync session from Firebase auth if any
-    window.addEventListener('fv_auth_state', (ev)=>{
-      const user = ev.detail;
-      if(user && user.email){
-        // create local user if missing, save session
-        const users = loadUsers();
-        let localUser = users.find(u=>u.email === user.email);
-        if(!localUser){
-          localUser = {
-            id: createId('u'),
-            username: user.email.split('@')[0],
-            usernameLower: user.email.split('@')[0].toLowerCase(),
-            email: user.email,
-            xp: 10,
-            lastActive: Date.now(),
-            friends: [],
-            avatarColor: pickColor(user.email.split('@')[0])
-          };
-          users.push(localUser); saveUsers(users);
-        }
-        setSession(localUser.id);
-        currentUser = localUser;
-        applyDecayAndVisit(currentUser);
-        renderRank();
-        showPage('profile');
-      } else {
-        // firebase logged out -> keep local session if exists
-        const s = getSession();
-        if(s && s.userId){ currentUser = findUserById(s.userId); if(currentUser) applyDecayAndVisit(currentUser); renderRank(); showPage('profile'); setTimeout(()=> showPage('home'),700); }
-        else { showPage('login'); }
-      }
-    });
+function renderBookCard(b){ const wrap = document.createElement('div'); wrap.className='book-card'; wrap.innerHTML = `<img class="book-cover" src="${encodeURI(b.cover||'https://picsum.photos/seed/book/200/300')}" alt="cover"/><div class="book-meta"><div class="book-title">${escapeHtml(b.title)}</div><div class="book-author">${escapeHtml(b.author||'Unknown')}</div><div class="small">${escapeHtml(b.description||'')}</div><div style="height:10px"></div><div class="book-actions"><button class="btn" onclick="openSource('${escapeForJs(b.source_url)}')">Open Source</button>${b.type==='novel'?'<button class="btn ghost" onclick="purchasePlaceholder(\''+b.id+'\')">Buy</button>':''}</div></div>`; return wrap; }
 
-    // initial local session
-    const s = getSession();
-    if(s && s.userId){
-      currentUser = findUserById(s.userId);
-      if(currentUser) applyDecayAndVisit(currentUser);
-      renderRank();
-      showPage('profile');
-      setTimeout(()=> showPage('home'),700);
-    } else {
-      showPage('login');
-    }
-  }
+function openSource(url){ if(!url) return alert('No source available'); window.open(url,'_blank'); }
+function purchasePlaceholder(id){ alert('This site does not host copyrighted files. Paid books must be purchased via official stores.'); }
 
-  // expose some functions globally used in inline handlers
-  window.showPage = showPage;
-  window.openSource = window.openSource;
-  window.startChat = window.startChat;
-  window.addFriend = window.addFriend;
-  window.openQuestion = window.openQuestion;
+/* ---------- Friends / Chat ---------- */
+function loadFriendsList(){ friendsList.innerHTML=''; if(!currentUser){ friendsList.innerHTML='<div class="small">Login to see friends</div>'; return; } const friends = currentUser.friends||[]; if(friends.length===0){ friendsList.innerHTML='<div class="small">No friends yet</div>'; return; } friends.forEach(id=>{ const u=findUserById(id); if(!u) return; const d=document.createElement('div'); d.className='small'; d.innerHTML = `${escapeHtml(u.username)} <button class="btn ghost" style="margin-left:8px" onclick="startChat('${u.id}')">Chat</button>`; friendsList.appendChild(d); }); }
 
-  // small helpers for outside functions
-  function renderRankSmall(xp){ const r = xpToRank(xp||0); return `<div class="small">XP ${xp||0} • <span class="badge">${r.emoji} ${r.name}</span></div>`; }
-  window.renderRankSmall = renderRankSmall;
+function addFriend(targetId){ if(!currentUser){ if(confirm('Login to add friends')) showPage('login'); return; } if(currentUser.id===targetId) return alert('Cannot add yourself'); const users=loadUsers(); const meIdx=users.findIndex(u=>u.id===currentUser.id); users[meIdx].friends = users[meIdx].friends||[]; if(users[meIdx].friends.includes(targetId)) return alert('Already friends'); users[meIdx].friends.push(targetId); saveUsers(users); currentUser = users[meIdx]; renderUserArea(); loadFriendsList(); }
 
-  // safe global helpers used earlier
-  window.findUserById = findUserById;
-  window.findUserByUsername = findUserByUsername;
-  window.awardXP = awardXP;
+function startChat(otherId){ if(!currentUser){ if(confirm('Login to chat')) showPage('login'); return; } const other = findUserById(otherId); if(!other) return alert('User not found'); activeChat = {peerId:otherId,peerName:other.username}; document.getElementById('chatWith').textContent = 'Chat — ' + other.username; document.getElementById('chatPanel').classList.add('open'); loadChat(activeChat); }
+function loadChat(room){ const all = read(LS_CHATS, {}); const id = chatRoomId(room.peerId, currentUser.id); const msgs = all[id] || []; const chatBody = document.getElementById('chatBody'); chatBody.innerHTML=''; msgs.forEach(m=>{ const d=document.createElement('div'); d.className='msg ' + (m.from===currentUser.id ? 'me' : 'them'); d.style.marginBottom='8px'; d.innerHTML=`<div style="font-size:13px">${escapeHtml(m.text)}</div><div class="small" style="margin-top:6px">${new Date(m.ts).toLocaleString()}</div>`; chatBody.appendChild(d); }); chatBody.scrollTop = chatBody.scrollHeight; }
+function chatRoomId(a,b){ return [a,b].sort().join('_'); }
+function sendMessage(){ const text = document.getElementById('chatText').value.trim(); if(!text || !activeChat) return; const all = read(LS_CHATS, {}); const id = chatRoomId(activeChat.peerId, currentUser.id); all[id] = all[id] || []; all[id].push({from:currentUser.id,to:activeChat.peerId,text,ts:Date.now()}); write(LS_CHATS, all); document.getElementById('chatText').value=''; loadChat(activeChat); }
 
-  // wire community functions to window scope when needed
-  window.renderBooks = renderBooks;
-  window.renderNovels = renderNovels;
-  window.renderLanguages = renderLanguages;
-  window.renderQA = renderQA;
-  window.renderCommunity = renderCommunity;
+document.getElementById('sendChat').onclick = ()=> sendMessage(); document.getElementById('closeChat').onclick = ()=> { document.getElementById('chatPanel').classList.remove('open'); activeChat=null; };
 
-  // start
-  init();
+document.getElementById('openChatBtn').onclick = ()=> { if(!currentUser){ if(confirm('Login to chat')) showPage('login'); return; } const friends = currentUser.friends||[]; if(friends.length>0) startChat(friends[0]); else alert('You have no friends yet. Use Community to add friends.'); };
 
-})();
+/* ---------- Utilities ---------- */
+function escapeHtml(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function initials(name){ return (name||'').split(' ').map(x=>x[0]||'').slice(0,2).join('').toUpperCase(); }
+function pickColor(seed){ const palette=['#b98a2b','#a97e2b','#c79a3d','#9a7a2b','#d4a24a','#8f6b2a']; let h=0; for(let i=0;i<seed.length;i++) h=(h<<5)-h+seed.charCodeAt(i); return palette[Math.abs(h)%palette.length]; }
+function renderUserArea(){ const s = getSession(); if(s && s.userId){ currentUser = findUserById(s.userId); userArea.innerHTML = `<strong style="color:var(--gold)">${escapeHtml(currentUser.username)}</strong>`; loginTab.classList.add('hidden'); } else { userArea.innerHTML = 'Not signed in'; loginTab.classList.remove('hidden'); }
+  loadFriendsList(); }
+
+function escapeForJs(s){ return (s||'').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
+
+/* theme toggle */
+const themeToggle = document.getElementById('themeToggle'); themeToggle.onclick = ()=>{
+  const el = document.documentElement; const cur = el.getAttribute('data-theme'); el.setAttribute('data-theme', cur==='dark'?'light':'dark');
+};
+
+/* Init */
+async function init(){ await loadBooks(); const s = getSession(); if(s && s.userId){ currentUser = findUserById(s.userId); renderUserArea(); showPage('home'); } else { showPage('login'); }
+  // wire nav profile btn
+  document.getElementById('navProfileBtn').onclick = ()=> showPage('profile');
+  // global search
+  document.getElementById('globalSearch').oninput = async ()=>{ const q = document.getElementById('globalSearch').value.trim().toLowerCase(); if(!q){ showPage('home'); return; } await loadBooks(); const matches = BOOKS.filter(b=> (b.title+' '+(b.author||'')+' '+(b.description||'')).toLowerCase().includes(q)); page.innerHTML = `<h2>Search results for "${escapeHtml(document.getElementById('globalSearch').value)}"</h2><div class="book-grid" id="searchResults"></div>`; const node=document.getElementById('searchResults'); matches.forEach(b=> node.appendChild(renderBookCard(b))); };
+  // small side nav shortcuts
+  sideNavList.querySelectorAll('.tab').forEach(t=> t.onclick = ()=> showPage(t.dataset.page));
+}
+init();
+
+/* helper to open external url from book card in global scope */
+window.openSource = openSource;
+window.startChat = startChat;
+window.addFriend = addFriend;
+window.openChat = ()=> document.getElementById('chatPanel').classList.add('open');
+window.purchasePlaceholder = purchasePlaceholder;
+
 </script>
 </body>
 </html>
