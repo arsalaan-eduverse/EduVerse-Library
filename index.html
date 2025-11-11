@@ -236,18 +236,36 @@ function setActiveNav(pageName){ navItems.forEach(n=> n.classList.toggle('active
 secondaryNav.addEventListener('click', (e)=>{ if(e.target.matches('.nav-item')) showPage(e.target.dataset.page); });
 sideNavList.addEventListener('click', (e)=>{ if(e.target.matches('.tab')) showPage(e.target.dataset.page); });
 
-function showPage(pageName){ setActiveNav(pageName);
-  if(pageName==='login') return renderLogin();
-  if(pageName==='profile') return renderProfile();
-  if(pageName==='home') return renderHome();
-  if(pageName==='education') return renderEducation();
-  if(pageName==='novels') return renderNovels();
-  if(pageName==='languages') return renderLanguages();
-  if(pageName==='ai') return renderAITutor();
-  if(pageName==='qa') return renderQA();
-  if(pageName==='community') return renderCommunity();
-  renderHome();
+  function showPage(pageName) {
+  // Require login for all pages except login/register
+  const session = getSession();
+  const loggedIn = session && session.userId;
+  
+  // Prevent switching if not logged in
+  if (!loggedIn && !["login", "register"].includes(pageName)) {
+    alert("Please log in to access this page.");
+    renderLogin();
+    return;
+  }
+
+  // Highlight active tab
+  setActiveNav(pageName);
+
+  // Load pages
+  switch (pageName) {
+    case 'login': renderLogin(); break;
+    case 'profile': renderProfile(); break;
+    case 'home': renderHome(); break;
+    case 'education': renderEducation(); break;
+    case 'novels': renderNovels(); break;
+    case 'languages': renderLanguages(); break;
+    case 'ai-tutor': renderAITutor(); break;
+    case 'qa': renderQA(); break;
+    case 'community': renderCommunity(); break;
+    default: renderHome(); break;
+  }
 }
+
 
 /* ---------- Pages ---------- */
 function renderLogin(){
